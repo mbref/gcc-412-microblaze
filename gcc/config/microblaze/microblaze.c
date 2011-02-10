@@ -203,7 +203,7 @@ int simple_memory_operand 			PARAMS ((rtx, enum machine_mode));
 void trace 					PARAMS ((const char *, const char *, const char *));
 void gen_conditional_branch 			PARAMS ((rtx *, enum rtx_code));
 void init_cumulative_args 			PARAMS ((CUMULATIVE_ARGS *,tree, rtx));
-int function_arg_partial_nregs 			PARAMS ((CUMULATIVE_ARGS *, enum machine_mode, tree, int));
+int function_arg_partial_bytes 			PARAMS ((CUMULATIVE_ARGS *, enum machine_mode, tree, int));
 HOST_WIDE_INT microblaze_debugger_offset 	PARAMS ((rtx, HOST_WIDE_INT));
 void microblaze_output_lineno 			PARAMS ((FILE *, int));
 void microblaze_internal_label 			PARAMS ((FILE *, const char*, unsigned long));
@@ -579,6 +579,9 @@ static int microblaze_save_volatiles (tree);
 
 #undef TARGET_DEFAULT_TARGET_FLAGS
 #define TARGET_DEFAULT_TARGET_FLAGS	TARGET_DEFAULT
+
+#undef TARGET_ARG_PARTIAL_BYTES
+#define TARGET_ARG_PARTIAL_BYTES	function_arg_partial_bytes
 
 struct gcc_target targetm = TARGET_INITIALIZER;
 
@@ -2751,9 +2754,12 @@ function_arg (
   switch (mode)
   {
     case SFmode:
-      regbase = GP_ARG_FIRST;
-      break;
     case DFmode:
+    case VOIDmode:
+    case QImode:
+    case HImode:
+    case SImode:
+    case DImode:
       regbase = GP_ARG_FIRST;
       break;
     default:
@@ -2764,15 +2770,6 @@ function_arg (
     case BLKmode:
       regbase = GP_ARG_FIRST;
       break;
-
-    case VOIDmode:
-    case QImode:
-    case HImode:
-    case SImode:
-      regbase = GP_ARG_FIRST;
-      break;
-    case DImode:
-      regbase = GP_ARG_FIRST;
   }
 
   if (*arg_words >= MAX_ARGS_IN_REGISTERS)
@@ -2835,8 +2832,9 @@ function_arg (
   return ret;
 }
 
+/* Return number of bytes of argument to put in registers. */
 int
-function_arg_partial_nregs (
+function_arg_partial_bytes (
   CUMULATIVE_ARGS *cum,		/* current arg information */
   enum machine_mode mode,	/* current arg mode */
   tree type,			/* type of the argument or 0 if lib support */
@@ -2861,7 +2859,7 @@ function_arg_partial_nregs (
       fprintf (stderr, "function_arg_partial_nregs = %d\n",
                MAX_ARGS_IN_REGISTERS - cum->arg_words);
 
-    return MAX_ARGS_IN_REGISTERS - cum->arg_words;
+    return (MAX_ARGS_IN_REGISTERS - cum->arg_words) * UNITS_PER_WORD;
   }
 
   else if (mode == DImode && cum->arg_words == MAX_ARGS_IN_REGISTERS-1)
@@ -2869,7 +2867,7 @@ function_arg_partial_nregs (
     if (TARGET_DEBUG_E_MODE)
       fprintf (stderr, "function_arg_partial_nregs = 1\n");
         
-    return 1;
+    return UNITS_PER_WORD;
   }
     
   return 0;
