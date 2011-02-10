@@ -632,6 +632,9 @@ while (0)
 /* Generate DWARF exception handling info. */
 #define DWARF2_UNWIND_INFO 1
 
+/* Don't generate .loc operations. */
+#define DWARF2_ASM_LINE_DEBUG_INFO 0
+
 /* The mapping from gcc register number to DWARF 2 CFA column number.
  */
 #define DWARF_FRAME_REGNUM(REG)				\
