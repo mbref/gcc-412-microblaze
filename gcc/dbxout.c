@@ -3200,6 +3200,9 @@ dbxout_parms (tree parms)
 		&& GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (parms))) < UNITS_PER_WORD)
 	      number += (GET_MODE_SIZE (GET_MODE (DECL_RTL (parms)))
 			 - GET_MODE_SIZE (TYPE_MODE (TREE_TYPE (parms))));
+
+	    number = DEBUGGER_ARG_OFFSET (number,
+					  XEXP (XEXP (DECL_RTL (parms), 0), 0));
 	  }
 	else
 	  /* ??? We don't know how to represent this argument.  */
