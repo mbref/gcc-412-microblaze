@@ -1449,7 +1449,7 @@ mcore-*-pe*)
 	use_fixproto=yes
 	;;
 microblaze*-*-*)
-        tm_file="microblaze/microblaze.h"
+        tm_file="dbxelf.h microblaze/microblaze.h"
         tmake_file=microblaze/t-microblaze
         ;;
 mips-sgi-irix[56]*)
