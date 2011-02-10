@@ -637,7 +637,9 @@ while (0)
 /* How to renumber registers for dbx and gdb. */
 #define DBX_REGISTER_NUMBER(REGNO) microblaze_dbx_regno[ (REGNO) ]
 
-#define DWARF2_UNWIND_INFO 0
+/* Generate DWARF exception handling info. */
+#define DWARF2_UNWIND_INFO 1
+
 /* The mapping from gcc register number to DWARF 2 CFA column number.
  */
 #define DWARF_FRAME_REGNUM(REG)				\
