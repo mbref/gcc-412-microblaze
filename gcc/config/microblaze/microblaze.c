@@ -586,6 +586,9 @@ static int microblaze_save_volatiles (tree);
 #undef TARGET_ARG_PARTIAL_BYTES
 #define TARGET_ARG_PARTIAL_BYTES	function_arg_partial_bytes
 
+#undef TARGET_PROMOTE_FUNCTION_RETURN
+#define TARGET_PROMOTE_FUNCTION_RETURN 	hook_bool_tree_true
+
 struct gcc_target targetm = TARGET_INITIALIZER;
 
 /* Return truth value if a CONST_DOUBLE is ok to be a legitimate constant.  */
