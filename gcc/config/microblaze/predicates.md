@@ -99,6 +99,6 @@
 (define_predicate "highpart_shift_operator"
   (match_code "ashiftrt,rotatert,rotate"))
 
-
-
-
+;; Test for valid PIC call operand
+(define_predicate "call_insn_plt_operand"
+  (match_test "PLT_ADDR_P (op)"))

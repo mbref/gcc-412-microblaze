@@ -44,8 +44,12 @@
   (R_DR       16)       ;; Debug trap return addr reg
   (R_ER       17)       ;; Exception return addr reg
   (R_TMP      18)       ;; Assembler temporary reg
+  (R_GOT      20)       ;; GOT ptr reg
   (MB_PIPE_3   0)       ;; Microblaze 3-stage pipeline 
   (MB_PIPE_5   1)       ;; Microblaze 5-stage pipeline 
+  (UNSPEC_SET_GOT       101)    ;;
+  (UNSPEC_GOTOFF        102)    ;; GOT offset
+  (UNSPEC_PLT           103)    ;; jump table
 ])
 
 
@@ -1594,48 +1598,7 @@
 	(match_operand:SI 1 "general_operand" ""))]
   ""
   {
-
-    /* If we are generating embedded PIC code, and we are referring to a
-       symbol in the .text section, we must use an offset from the start
-       of the function.  */
-    if (TARGET_EMBEDDED_PIC
-        && (GET_CODE (operands[1]) == LABEL_REF
-	    || (GET_CODE (operands[1]) == SYMBOL_REF
-	        && ! SYMBOL_REF_FLAG (operands[1]))))
-    {
-        rtx temp;
-
-        temp = embedded_pic_offset (operands[1]);
-        temp = gen_rtx_PLUS (Pmode, embedded_pic_fnaddr_rtx,
-	                force_reg (SImode, temp));
-        emit_move_insn (operands[0], force_reg (SImode, temp));
-        DONE;
-    }
-
-    /* If operands[1] is a constant address invalid for pic, then we need to
-       handle it just like LEGITIMIZE_ADDRESS does.  */
-    if (flag_pic && pic_address_needs_scratch (operands[1]))
-    {
-        rtx temp = force_reg (SImode, XEXP (XEXP (operands[1], 0), 0));
-        rtx temp2 = XEXP (XEXP (operands[1], 0), 1);
-
-        /* if (! SMALL_INT (temp2))
-	   temp2 = force_reg (SImode, temp2);
-        */
-        emit_move_insn (operands[0], gen_rtx_PLUS (SImode, temp, temp2));
-        DONE;
-    }
-
-    if ((reload_in_progress | reload_completed) == 0
-        && !register_operand (operands[0], SImode)
-        && !register_operand (operands[1], SImode)
-        && (GET_CODE (operands[1]) != CONST_INT
-	    || INTVAL (operands[1]) != 0))
-    {
-        rtx temp = force_reg (SImode, operands[1]);
-        emit_move_insn (operands[0], temp);
-        DONE;
-    }
+    if (microblaze_expand_move (SImode, operands)) DONE;
   }
 )
 
@@ -1689,13 +1652,28 @@
   (set_attr "mode"	"SI")
   (set_attr "length"	"4")])
 
+;; This move may be used for PLT label operand
+(define_insn "movsi_internal5_pltop"
+  [(set (match_operand:SI 0 "register_operand" "=d,d")
+	(match_operand:SI 1 "call_insn_operand" ""))]
+  "(register_operand (operands[0], Pmode) && 
+           PLT_ADDR_P (operands[1]))"
+  { 
+	 return microblaze_move_1word (operands, insn, FALSE);
+  }
+  [(set_attr "type"	"load")
+  (set_attr "mode"	"SI")
+  (set_attr "length"	"4")])
+
 (define_insn "movsi_internal2"
   [(set (match_operand:SI 0 "nonimmediate_operand" "=d,d,d,d, d,   d,d,T ,R ")
 	(match_operand:SI 1 "move_operand"         " d,S,K,IL,Mnis,R,m,dJ,dJ"))]
   "!TARGET_DEBUG_H_MODE
    && (register_operand (operands[0], SImode)
        || register_operand (operands[1], SImode) 
-      || (GET_CODE (operands[1]) == CONST_INT && INTVAL (operands[1]) == 0))"
+       || (GET_CODE (operands[1]) == CONST_INT && INTVAL (operands[1]) == 0))
+       && (flag_pic != 2 || (GET_CODE (operands[1]) != SYMBOL_REF 
+                         && GET_CODE (operands[1]) != LABEL_REF))"
   { 
 	 return microblaze_move_1word (operands, insn, FALSE);
   }
@@ -3432,6 +3410,11 @@
     if (operands[0])		/* eliminate unused code warnings */
     {
         addr = XEXP (operands[0], 0);
+        if (flag_pic == 2 && GET_CODE (addr) == SYMBOL_REF && !SYMBOL_REF_LOCAL_P (addr)) {
+          rtx temp;
+          temp = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, addr), UNSPEC_PLT);
+          XEXP (operands[0], 0) = temp;
+        }
         if ((GET_CODE (addr) != REG && (!CONSTANT_ADDRESS_P (addr) ))
 	    || ! call_insn_operand (addr, VOIDmode))
             XEXP (operands[0], 0) = copy_to_mode_reg (Pmode, addr);
@@ -3470,6 +3453,22 @@
     /*      fprintf(stderr,"expand \t call_internal0  \n");*/
   }
 )
+ 
+(define_insn "call_internal_plt"
+  [(call (mem (match_operand:SI 0 "call_insn_plt_operand" ""))
+	 (match_operand:SI 1 "" "i"))
+  (clobber (reg:SI R_SR))]
+  "flag_pic"
+  {
+    register rtx target = operands[0];
+    register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
+    /*  fprintf(stderr,"insn\t call_internal_plt  \n");	*/
+    gen_rtx_CLOBBER(VOIDmode,target2);
+    return "brlid\tr15,%0\;%#";
+  }
+  [(set_attr "type"	"call")
+  (set_attr "mode"	"none")
+  (set_attr "length"	"4")])
 
 (define_insn "call_internal1"
   [(call (mem (match_operand:SI 0 "call_insn_operand" "ri"))
@@ -3510,6 +3509,11 @@
     if (operands[0])		/* eliminate unused code warning */
     {
         addr = XEXP (operands[1], 0);
+        if (flag_pic == 2 && GET_CODE (addr) == SYMBOL_REF && !SYMBOL_REF_LOCAL_P (addr)) {
+          rtx temp;
+          temp = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, addr), UNSPEC_PLT);
+          XEXP (operands[1], 0) = temp;
+        }
         if ((GET_CODE (addr) != REG && (!CONSTANT_ADDRESS_P (addr) ))
             || ! call_insn_operand (addr, VOIDmode))
             XEXP (operands[1], 0) = copy_to_mode_reg (Pmode, addr);
@@ -3585,6 +3589,22 @@
   }
 )
 
+(define_insn "call_value_intern_plt"
+  [(parallel[(set (match_operand 0 "register_operand" "=df")
+                  (call (mem (match_operand:SI 1 "call_insn_plt_operand" ""))
+                        (match_operand:SI 2 "" "i")))
+             (clobber (match_operand:SI 3 "register_operand" "=d"))])]
+  "flag_pic"
+  { 
+    register rtx target = operands[1];
+    register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
+
+    gen_rtx_CLOBBER(VOIDmode,target2);
+    return "brlid\tr15,%1\;%#";
+  }
+  [(set_attr "type"	"call")
+  (set_attr "mode"	"none")
+  (set_attr "length"	"4")])
 
 (define_insn "call_value_intern"
   [(parallel[(set (match_operand:SI 0 "register_operand" "=df")
@@ -3706,3 +3726,14 @@
 ;;     DONE;
 ;;   }
 ;; )     
+
+;; The insn to set GOT. The hardcoded number "8" accounts for $pc difference
+;; between "mfs" and "addik" instructions.
+(define_insn "set_got"
+  [(set (match_operand:SI 0 "register_operand" "=r")
+    (unspec:SI [(const_int 0)] UNSPEC_SET_GOT))]
+  ""
+  "mfs\t%0,rpc\n\taddik\t%0,%0,_GLOBAL_OFFSET_TABLE_+8"
+  [(set_attr "type" "multi")
+   (set_attr "length" "12")])
+

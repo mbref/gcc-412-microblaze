@@ -438,7 +438,7 @@ while (0)
 /* ??? The bestGnum will never be passed to the linker, because the gcc driver
    will interpret it as a -b option.  */
 
-#define LINK_SPEC "-relax %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
+#define LINK_SPEC "%{shared:-shared} -relax %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
 
 /* Specs for the compiler proper */
 
@@ -1224,7 +1224,8 @@ extern char microblaze_hard_regno_mode_ok[][FIRST_PSEUDO_REGISTER];
    this macro is not defined, it is up to the machine-dependent
    files to allocate such a register (if necessary).  */
 #define PIC_OFFSET_TABLE_REGNUM         \
-        (GP_REG_FIRST + MB_ABI_PIC_ADDR_REGNUM)
+        (flag_pic ? (GP_REG_FIRST + MB_ABI_PIC_ADDR_REGNUM) : \
+        INVALID_REGNUM)
 
 #define PIC_FUNCTION_ADDR_REGNUM        \
         (GP_REG_FIRST + MB_ABI_PIC_FUNC_REGNUM)
@@ -1425,14 +1426,15 @@ contain (16 bit zero-extended integers).
 #define SMALL_INT_UNSIGNED(X) ((unsigned HOST_WIDE_INT) (INTVAL (X)) < 0x10000)
 #define LARGE_INT(X) (((unsigned HOST_WIDE_INT) (INTVAL (X) + 0xffffffff)) \
 	== ((unsigned HOST_WIDE_INT) (INTVAL (X) + 0xffffffff)))
+#define PLT_ADDR_P(X) (GET_CODE (X) == UNSPEC && XINT (X,1) == UNSPEC_PLT)
 /* Test for a valid operand for a call instruction.
    Don't allow the arg pointer register or virtual regs
    since they may change into reg + const, which the patterns
    can't handle yet.  */
-#define CALL_INSN_OP(X) (CONSTANT_ADDRESS_P (op)	\
-                         || (GET_CODE (op) == REG && op != arg_pointer_rtx	\
-                             && ! (REGNO (op) >= FIRST_PSEUDO_REGISTER	\
-                             && REGNO (op) <= LAST_VIRTUAL_REGISTER)))
+#define CALL_INSN_OP(X) (CONSTANT_ADDRESS_P (X) \
+                         || (GET_CODE (X) == REG && X != arg_pointer_rtx\
+                             && ! (REGNO (X) >= FIRST_PSEUDO_REGISTER	\
+                             && REGNO (X) <= LAST_VIRTUAL_REGISTER)))
 
 /* Deifinition of K changed for MicroBlaze specific code */
 

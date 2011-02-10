@@ -124,7 +124,9 @@ enum microblaze_address_type {
   ADDRESS_REG,
   ADDRESS_REG_INDEX,
   ADDRESS_CONST_INT,
-  ADDRESS_SYMBOLIC
+  ADDRESS_SYMBOLIC,
+  ADDRESS_GOTOFF,
+  ADDRESS_PLT
 };
 
 /* Classifies symbols
@@ -218,6 +220,7 @@ int microblaze_is_interrupt_handler		PARAMS ((void));
 int microblaze_const_double_ok 			PARAMS ((rtx, enum machine_mode));
 static int microblaze_must_save_register 	PARAMS ((int));
 void output_ascii 				PARAMS ((FILE *, const char *, int));
+static bool microblaze_classify_unspec 		PARAMS ((struct microblaze_address_info *, rtx));
 
 /* Global variables for machine-dependent things.  */
 
@@ -775,6 +778,24 @@ microblaze_valid_base_register_p (rtx x, enum machine_mode mode ATTRIBUTE_UNUSED
 	  && microblaze_regno_ok_for_base_p (REGNO (x), strict));
 }
 
+static bool
+microblaze_classify_unspec (struct microblaze_address_info *info, rtx x)
+{
+  info->symbol_type = SYMBOL_TYPE_GENERAL;
+  info->symbol = XVECEXP(x,0,0);
+
+  if (XINT(x,1) == UNSPEC_GOTOFF) {
+    info->regA =  gen_rtx_REG (SImode, PIC_OFFSET_TABLE_REGNUM);
+    info->type = ADDRESS_GOTOFF;
+  } else if (XINT(x,1) == UNSPEC_PLT) {
+    info->type = ADDRESS_PLT;
+  } else {
+    return false;
+  }
+  return true;
+}
+
+
 /* Return true if X is a valid index register for the given mode.
    Allow only hard registers if STRICT.  */
 
@@ -847,6 +868,12 @@ microblaze_classify_address (struct microblaze_address_info *info, rtx x,
         if (GET_CODE (xplus1) == CONST_INT) {
           info->offset = xplus1;
           return true;							
+        } else if (GET_CODE (xplus1) == UNSPEC) {
+          return microblaze_classify_unspec(info, xplus1);
+        } else if ((GET_CODE (xplus1) == SYMBOL_REF ||
+                    GET_CODE (xplus1) == LABEL_REF) &&
+                   flag_pic == 2) {
+          return false;
         } else if (GET_CODE (xplus1) == SYMBOL_REF || 
                    GET_CODE (xplus1) == LABEL_REF  || 
                    GET_CODE (xplus1) == CONST) {                   
@@ -855,6 +882,11 @@ microblaze_classify_address (struct microblaze_address_info *info, rtx x,
 /*                ? 0  */
 /*                : get_base_reg (xplus1) != REGNO (info->regA))) */
 /*             return false; */
+          if (GET_CODE (XEXP (xplus1, 0)) == UNSPEC)
+            return microblaze_classify_unspec(info, XEXP (xplus1, 0));
+          else if (flag_pic == 2) {
+            return false;
+          }
           info->type = ADDRESS_SYMBOLIC;
           info->symbol = xplus1;
           /* info->regA =  gen_rtx_raw_REG (mode, get_base_reg (xplus1)); */
@@ -889,10 +921,20 @@ microblaze_classify_address (struct microblaze_address_info *info, rtx x,
             
       if (GET_CODE (x) == CONST) {
         return !(flag_pic && pic_address_needs_scratch (x));
+      } else if (flag_pic == 2) {
+        return false;
       }
 
       return true;           
     }
+
+    case UNSPEC:
+    {
+      if (reload_in_progress)
+        regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+      return microblaze_classify_unspec(info, x);
+    }
+
     default:
       return false;
   }
@@ -1001,7 +1043,49 @@ microblaze_legitimize_address (rtx x, rtx oldx ATTRIBUTE_UNUSED,
                         GEN_INT (INTVAL (xplus1) & 0x7fff));		
       return result;							
     }								
+
+    if (code0 == REG && REG_OK_FOR_BASE_P (xplus0)
+        && flag_pic == 2)
+    {
+      rtx ptr_reg = gen_reg_rtx (Pmode);
+      rtx res_reg = gen_reg_rtx (Pmode);
+//      fprintf(stderr, "legitimize address:\n");
+//      debug_rtx(xplus0);
+//      debug_rtx(xplus1);
+      if (reload_in_progress)
+        regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+      if (code1 == CONST)
+      {
+        xplus1 = XEXP(xplus1, 0);
+        code1 = GET_CODE(xplus1);
+      }
+      if (code1 == SYMBOL_REF)
+      {
+        result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, xplus1), UNSPEC_GOTOFF);
+        result = gen_rtx_CONST (Pmode, result);
+        result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
+        result = gen_const_mem (Pmode, result);
+        result = gen_rtx_PLUS (Pmode, xplus0, result);
+//        fprintf(stderr, "  returning:\n");
+//        debug_rtx(result);
+//        emit_insn (gen_rtx_SET (VOIDmode, res_reg, result));
+        return result;
+      }
+    }
   }									
+ 									
+  if (GET_CODE (xinsn) == SYMBOL_REF)
+  {
+//    fprintf(stderr, "legitimize_address (sym):\n");
+//    debug_rtx(xinsn);
+    if (reload_in_progress)
+      regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+    result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, xinsn), UNSPEC_GOTOFF);
+    result = gen_rtx_CONST (Pmode, result);
+    result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
+    result = gen_const_mem (Pmode, result);
+    return result;
+  }
 									
   if (TARGET_DEBUG_B_MODE)						
     GO_PRINTF ("LEGITIMIZE_ADDRESS could not fix.\n");			
@@ -1377,6 +1461,7 @@ microblaze_move_1word (
             break;
           case ADDRESS_CONST_INT:
           case ADDRESS_SYMBOLIC:
+          case ADDRESS_GOTOFF:
             sprintf (ret, "l%si\t%%0,%%1", microblaze_mode_to_mem_modifier (1, GET_MODE (operands[1])));
             break;
 	  case ADDRESS_INVALID:
@@ -1450,7 +1535,8 @@ microblaze_move_1word (
 
     else if (code1 == SYMBOL_REF || code1 == CONST)
     {
-      if (HALF_PIC_P () && CONSTANT_P (op1) && HALF_PIC_ADDRESS_P (op1))
+      if ((HALF_PIC_P () && CONSTANT_P (op1) && HALF_PIC_ADDRESS_P (op1)) ||
+	 flag_pic == 2)
       {
         rtx offset = const0_rtx;
 
@@ -1459,23 +1545,40 @@ microblaze_move_1word (
 
         if (GET_CODE (op1) == SYMBOL_REF)
         {
-          operands[2] = HALF_PIC_PTR (op1);
-
-          if (TARGET_STATS)
-            microblaze_count_memory_refs (operands[2], 1);
-
-          if (INTVAL (offset) == 0)
+	  if (flag_pic == 2)
           {
-            /*		      delay = DELAY_LOAD;*/
-            delay = DELAY_NONE;
-            strcpy (ret, "lw\t%0,%2");
+	    rtx temp;
+            temp = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, op1), UNSPEC_GOTOFF);
+            temp = gen_rtx_CONST (Pmode, temp);
+            temp = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, temp);
+            temp = gen_const_mem (Pmode, temp);
+            if (TARGET_STATS)
+              microblaze_count_memory_refs (temp, 1);
+            if (reload_in_progress)
+              regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+            sprintf (ret, "l%si\t%%0,%%1", microblaze_mode_to_mem_modifier (1, GET_MODE (operands[1])));
+            operands[1] = temp;
           }
           else
           {
-            /* XLNX [Check out]*/
-            dslots_load_total++;
-            operands[3] = offset;
-            strcpy (ret, "lwi\t%0,%2,0\n\tadd\t%0,%0,%3");
+            operands[2] = HALF_PIC_PTR (op1);
+
+            if (TARGET_STATS)
+              microblaze_count_memory_refs (operands[2], 1);
+
+            if (INTVAL (offset) == 0)
+            {
+              /*		      delay = DELAY_LOAD;*/
+              delay = DELAY_NONE;
+              strcpy (ret, "lw\t%0,%2");
+            }
+            else
+            {
+              /* XLNX [Check out]*/
+              dslots_load_total++;
+              operands[3] = offset;
+              strcpy (ret, "lwi\t%0,%2,0\n\tadd\t%0,%0,%3");
+            }
           }
         }
       }
@@ -1488,6 +1591,16 @@ microblaze_move_1word (
         
         if (TARGET_STATS)
           microblaze_count_memory_refs (op1, 1);
+      }
+    }
+
+    else if (code1 == UNSPEC && XINT (op1,1) == UNSPEC_PLT)
+    {
+      XINT (op1,1) = UNSPEC_GOTOFF; /* rewrite into GOTOFF */
+      if (GP_REG_P (regno0))
+      {
+        strcpy(ret, "lwi\t%0,%1");
+        return ret;
       }
     }
 
@@ -1528,6 +1641,7 @@ microblaze_move_1word (
         break;
       case ADDRESS_CONST_INT:
       case ADDRESS_SYMBOLIC:
+      case ADDRESS_GOTOFF:
         sprintf (ret, "s%si\t%%z1,%%0", microblaze_mode_to_mem_modifier (0, GET_MODE (operands[0])));
         break;
       case ADDRESS_INVALID:
@@ -1962,6 +2076,8 @@ microblaze_address_insns (rtx x, enum machine_mode mode)
       case ADDRESS_REG_INDEX:
       case ADDRESS_SYMBOLIC:
         return 1;
+      case ADDRESS_GOTOFF:
+        return 2;
       default:
         break;
     }
@@ -1988,7 +2104,7 @@ pic_address_needs_scratch (rtx x)
   if (GET_CODE (x) == CONST && GET_CODE (XEXP (x, 0)) == PLUS
       && GET_CODE (XEXP (XEXP (x, 0), 0)) == SYMBOL_REF
       && GET_CODE (XEXP (XEXP (x, 0), 1)) == CONST_INT
-      && ! SMALL_INT (XEXP (XEXP (x, 0), 1)))
+      && (flag_pic == 2 || ! SMALL_INT (XEXP (XEXP (x, 0), 1))))
     return 1;
 
   return 0;
@@ -3424,7 +3540,11 @@ print_operand (
     fputs (s, file);
 #endif
   }
-   
+
+  else if (code == UNSPEC)
+  {
+    print_operand_address(file, op);
+  }
 
   else if (letter == 'x' && GET_CODE (op) == CONST_INT)
     fprintf (file, HOST_WIDE_INT_PRINT_HEX, 0xffff & INTVAL(op));
@@ -3487,9 +3607,11 @@ print_operand_address (
   rtx addr)
 {
   struct microblaze_address_info info;
+  enum microblaze_address_type type;
   if (!microblaze_classify_address (&info, addr, GET_MODE (addr), 1)) 
     fatal_insn ("insn contains an invalid address !", addr);
   
+  type = info.type;
   switch (info.type) {
     case ADDRESS_REG:
       fprintf (file, "%s,", reg_names[REGNO (info.regA)]);
@@ -3506,8 +3628,16 @@ print_operand_address (
       output_addr_const (file, info.offset);
       break;
     case ADDRESS_SYMBOLIC:
-      fprintf (file, "%s,", reg_names[REGNO (info.regA)]);
+    case ADDRESS_GOTOFF:
+    case ADDRESS_PLT:
+      if (info.regA)
+        fprintf (file, "%s,", reg_names[REGNO (info.regA)]);
       output_addr_const (file, info.symbol);
+      if (type == ADDRESS_GOTOFF) {
+        fputs("@GOT", file);
+      } else if (type == ADDRESS_PLT) {
+        fputs("@PLT", file);
+      }
       break;
     case ADDRESS_INVALID:
       fatal_insn ("invalid address", addr);
@@ -4020,6 +4150,9 @@ compute_frame_size (
     args_size = NUM_OF_ARGS * UNITS_PER_WORD;
     
   total_size = var_size + args_size;
+ 
+  if (flag_pic == 2 /*&& !current_function_is_leaf */ )
+    regs_ever_live[MB_ABI_PIC_ADDR_REGNUM] = 1; /* force setting GOT */
 
   /* Calculate space needed for gp registers.  */
   for (regno = GP_REG_FIRST; regno <= GP_REG_LAST; regno++)
@@ -4165,7 +4298,7 @@ save_restore_insns (int prologue)
         insn = emit_move_insn (mem_rtx, reg_rtx);
         RTX_FRAME_RELATED_P (insn) = 1;
       }
-      else if (regno != (PIC_OFFSET_TABLE_REGNUM - GP_REG_FIRST))
+      else /* if (regno != (PIC_OFFSET_TABLE_REGNUM - GP_REG_FIRST)) */
       {
         insn = emit_move_insn (reg_rtx, mem_rtx);
       }
@@ -4437,6 +4570,14 @@ microblaze_expand_prologue (void)
         RTX_FRAME_RELATED_P (insn) = 1;
     }
 
+  }
+
+  if (flag_pic == 2 && (/*!current_function_is_leaf || */
+      regs_ever_live[MB_ABI_PIC_ADDR_REGNUM])) {
+    rtx insn;
+    REGNO (pic_offset_table_rtx) = MB_ABI_PIC_ADDR_REGNUM;
+    insn = emit_insn (gen_set_got (pic_offset_table_rtx));  /* setting GOT */
+    REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_MAYBE_DEAD, const0_rtx, NULL);
   }
 
   /* If we are profiling, make sure no instructions are scheduled before
@@ -5200,6 +5341,10 @@ microblaze_encode_section_info (
 static int
 microblaze_must_save_register (int regno)
 {
+  if (pic_offset_table_rtx &&
+      (regno == MB_ABI_PIC_ADDR_REGNUM) &&
+      regs_ever_live[regno]) return 1;
+
   if (regs_ever_live[regno] && !call_used_regs[regno]) return 1;
 
   if (frame_pointer_needed && 
@@ -5301,4 +5446,122 @@ output_ascii (FILE *file, const char *string, int len)
       }
     }
   fprintf (file, "\"\n");
+}
+
+static rtx 
+expand_pic_symbol_ref(enum machine_mode mode, rtx op)
+{
+  rtx result;
+  result = gen_rtx_UNSPEC (Pmode, gen_rtvec (1, op), UNSPEC_GOTOFF);
+  result = gen_rtx_CONST (Pmode, result);
+  result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
+  result = gen_const_mem (Pmode, result);
+  return result;
+}
+
+bool
+microblaze_expand_move (enum machine_mode mode, rtx operands[])
+{
+    /* If we are generating embedded PIC code, and we are referring to a
+       symbol in the .text section, we must use an offset from the start
+       of the function.  */
+    if (TARGET_EMBEDDED_PIC
+        && (GET_CODE (operands[1]) == LABEL_REF
+	    || (GET_CODE (operands[1]) == SYMBOL_REF
+	        && ! SYMBOL_REF_FLAG (operands[1]))))
+    {
+        rtx temp;
+
+        temp = embedded_pic_offset (operands[1]);
+        temp = gen_rtx_PLUS (Pmode, embedded_pic_fnaddr_rtx,
+	                force_reg (SImode, temp));
+        emit_move_insn (operands[0], force_reg (SImode, temp));
+        return true;
+    }
+
+    /* If operands[1] is a constant address invalid for pic, then we need to
+       handle it just like LEGITIMIZE_ADDRESS does.  */
+    if (flag_pic)
+    {
+      if (GET_CODE (operands[0]) == MEM)
+      {
+        rtx addr = XEXP (operands[0],0);
+        if (GET_CODE (addr) == SYMBOL_REF)
+        {
+          if (reload_in_progress)
+          {
+            regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+          }
+          rtx ptr_reg, result;
+
+          addr = expand_pic_symbol_ref (mode, addr);
+          ptr_reg = gen_reg_rtx (Pmode);
+          emit_move_insn (ptr_reg, addr);
+          result = gen_rtx_MEM(mode, ptr_reg);
+          operands[0] = result;
+        }
+      }
+      if (GET_CODE (operands[1]) == SYMBOL_REF || GET_CODE (operands[1]) == LABEL_REF)
+      {
+        rtx result;
+        if (reload_in_progress)
+        {
+          regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+        }
+        result = expand_pic_symbol_ref (mode, operands[1]);
+        if (GET_CODE (operands[0]) != REG) {
+          rtx ptr_reg = gen_reg_rtx (Pmode);
+          emit_move_insn (ptr_reg, result);
+          emit_move_insn (operands[0], ptr_reg);
+        }
+        else
+        {
+          emit_move_insn (operands[0], result);
+        }
+        return true;
+      }
+      else if (GET_CODE (operands[1]) == MEM &&
+               GET_CODE (XEXP(operands[1],0)) == SYMBOL_REF)
+      {
+        rtx result;
+        rtx ptr_reg;
+        if (reload_in_progress)
+        {
+          regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+        }
+        result = expand_pic_symbol_ref (mode, XEXP(operands[1],0));
+
+        ptr_reg = gen_reg_rtx (Pmode);
+
+        emit_move_insn (ptr_reg, result);
+        result = gen_rtx_MEM(mode, ptr_reg);
+        emit_move_insn (operands[0], result);
+        return true;
+      }
+      else if (pic_address_needs_scratch (operands[1]))
+      {
+        rtx temp = force_reg (SImode, XEXP (XEXP (operands[1], 0), 0));
+        rtx temp2 = XEXP (XEXP (operands[1], 0), 1);
+
+        if (reload_in_progress)
+          regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
+        /* if (! SMALL_INT (temp2))
+	   temp2 = force_reg (SImode, temp2);
+        */
+        emit_move_insn (operands[0], gen_rtx_PLUS (SImode, temp, temp2));
+        return true;
+      }
+    }
+
+    if ((reload_in_progress | reload_completed) == 0
+        && !register_operand (operands[0], SImode)
+        && !register_operand (operands[1], SImode)
+        && (GET_CODE (operands[1]) != CONST_INT
+	    || INTVAL (operands[1]) != 0))
+    {
+        rtx temp = force_reg (SImode, operands[1]);
+        emit_move_insn (operands[0], temp);
+        return true;
+    }
+  return false;
 }
