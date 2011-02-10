@@ -507,6 +507,8 @@ while (0)
 %{mxl-barrel-shift: -DHAVE_HW_BSHIFT}   	\
 %{mxl-pattern-compare: -DHAVE_HW_PCMP}  	\
 %{mhard-float: -DHAVE_HW_FPU}           	\
+%{mxl-float-convert: -DHAVE_HW_FPU_CONVERT} \
+%{mxl-float-sqrt: -DHAVE_HW_FPU_SQRT}   \
 "
 #endif
 

@@ -25,7 +25,7 @@ Use the soft multiply emulation (default)
 
 mxl-soft-div
 Target Mask(SOFT_DIV)
-Use the soft divide emulation (default)
+Use the software emulation for divides (default)
 
 mxl-barrel-shift
 Target Mask(BARREL_SHIFT)
@@ -95,7 +95,7 @@ Target RejectNegative Joined Var(microblaze_select_cpu)
 
 mtune=
 Target RejectNegative Joined Var(microblaze_select_tune)
--mtune=PROCESSOR	Schedule code for sub-configuration
+-mtune=PROCESSOR	Tune code for sub-configuration
 
 mno-clearbss
 Target RejectNegative
@@ -112,3 +112,16 @@ Target Mask(EMBEDDED_PIC)
 mxl-multiply-high
 Target Mask(MULTIPLY_HIGH)
 Use multiply high instructions for high part of 32x32 multiply
+
+mxl-float-convert
+Target Mask(FLOAT_CONVERT)
+Use hardware floating point converstion instructions
+
+mmemcpy
+Target Mask(MEMCPY)
+Don't optimize block moves, use memcpy
+
+mxl-float-sqrt
+Target Mask(FLOAT_SQRT)
+Use hardware floating point square root instruction
+

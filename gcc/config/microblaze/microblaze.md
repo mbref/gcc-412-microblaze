@@ -79,7 +79,7 @@
 ;; bshift 	Shift operations
 
 (define_attr "type"
-  "unknown,branch,jump,call,load,store,move,arith,darith,imul,idiv,icmp,multi,nop,no_delay_arith,no_delay_load,no_delay_store,no_delay_imul,no_delay_move,bshift,fadd,frsub,fmul,fdiv,fcmp,fsl"
+  "unknown,branch,jump,call,load,store,move,arith,darith,imul,idiv,icmp,multi,nop,no_delay_arith,no_delay_load,no_delay_store,no_delay_imul,no_delay_move,bshift,fadd,frsub,fmul,fdiv,fcmp,fsl,fsqrt,fcvt"
   (const_string "unknown"))
 
 ;; Main data type used by the insn
@@ -278,7 +278,15 @@
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
   "mb_issue,mb_fpu,mb_fpu_2*29,mb_wb")
 
+(define_insn_reservation "mb-fpu-sqrt" 30
+  (and (eq_attr "type" "fsqrt")
+       (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
+  "mb_issue,mb_fpu,mb_fpu_2*29,mb_wb")
 
+(define_insn_reservation "mb-fpu-fcvt" 4
+  (and (eq_attr "type" "fcvt")
+       (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_5)))
+  "mb_issue,mb_fpu,mb_fpu_2*3,mb_wb")
 
 ;;----------------------------------------------------------------
 ;; Microblaze 3-stage pipeline description (for v4.00.a and earlier)
@@ -343,6 +351,16 @@
        (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_3)))
   "mb3_iu")
 
+(define_insn_reservation "mb3-fpu-sqrt" 30
+  (and (eq_attr "type" "fsqrt")
+       (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_3)))
+  "mb3_iu")
+
+(define_insn_reservation "mb3-fpu-fcvt" 4
+  (and (eq_attr "type" "fcvt")
+       (eq (symbol_ref  "microblaze_pipe") (const_int MB_PIPE_3)))
+  "mb3_iu")
+
 (automata_option "v")
 (automata_option "time")
 (automata_option "progress")
@@ -403,6 +421,32 @@
   (set_attr "mode"      "SF")
   (set_attr "length"    "4")])
 
+(define_insn "sqrtsf2"
+  [(set (match_operand:SF 0 "register_operand" "=d")
+        (sqrt:SF (match_operand:SF 1 "register_operand" "d")))]
+  "TARGET_HARD_FLOAT && TARGET_FLOAT_SQRT"
+  "fsqrt\t%0,%1"
+  [(set_attr "type"     "fsqrt")
+  (set_attr "mode"      "SF")
+  (set_attr "length"    "4")])
+
+(define_insn "floatsisf2"
+  [(set (match_operand:SF 0 "register_operand" "=d")
+        (float:SF (match_operand:SI 1 "register_operand" "d")))]
+  "TARGET_HARD_FLOAT && TARGET_FLOAT_CONVERT"
+  "flt\t%0,%1"
+  [(set_attr "type"     "fcvt")
+  (set_attr "mode"      "SF")
+  (set_attr "length"    "4")])
+
+(define_insn "fix_truncsfsi2"
+  [(set (match_operand:SI 0 "register_operand" "=d")
+        (fix:SI (match_operand:SF 1 "register_operand" "d")))]
+  "TARGET_HARD_FLOAT && TARGET_FLOAT_CONVERT"
+  "fint\t%0,%1"
+  [(set_attr "type"     "fcvt")
+  (set_attr "mode"      "SF")
+  (set_attr "length"    "4")])
 
 ;;----------------------------------------------------------------
 ;; Add
@@ -606,6 +650,17 @@
 ;; Multiplication
 ;;----------------------------------------------------------------
 
+(define_expand "mulsi3"
+  [(set (match_operand:SI 0 "register_operand" "=d")
+        (mult:SI (match_operand:SI 1 "register_operand" "d")
+                 (match_operand:SI 2 "register_operand" "d")))]
+  "!TARGET_SOFT_MUL"
+  {
+    emit_insn (gen_mulsi3_mult3 (operands[0], operands[1], operands[2]));
+    DONE;
+  }
+)
+
 (define_insn "mulsi3_imm0"
   [(set (match_operand:SI 0 "register_operand" "=d")
 	(mult:SI  (match_operand:SI 1 "register_operand" "d")
@@ -656,19 +711,6 @@
   (set_attr "mode"	"SI")
   (set_attr "length"	"4,8")])
 
-(define_expand "mulsi3"
-  [(set (match_operand:SI 0 "register_operand" "=d")
-	(mult:SI (match_operand:SI 1 "register_operand" "d")
-		 (match_operand:SI 2 "register_operand" "d")))
-  (clobber (match_scratch:SI 3 "=d"))
-  (clobber (match_scratch:SI 4 "=d"))]
-  "!TARGET_SOFT_MUL"
-  {
-    emit_insn (gen_mulsi3_mult3 (operands[0], operands[1], operands[2]));
-    DONE;
-  }
-)
-
 (define_insn "mulsi3_mult3"
   [(set (match_operand:SI 0 "register_operand" "=d")
 	(mult:SI (match_operand:SI 1 "register_operand" "d")
@@ -679,6 +721,65 @@
   (set_attr "mode"	"SI")
   (set_attr "length"	"4")])
 
+(define_insn "mulsidi3"
+  [(set (match_operand:DI 0 "register_operand" "=&d")
+        (mult:DI
+         (sign_extend:DI (match_operand:SI 1 "register_operand" "d"))
+         (sign_extend:DI (match_operand:SI 2 "register_operand" "d"))))]
+  "!TARGET_SOFT_MUL && TARGET_MULTIPLY_HIGH"
+  "mul\t%L0,%1,%2\;mulh\t%M0,%1,%2"
+  [(set_attr "type"     "no_delay_arith")
+   (set_attr "mode"     "DI")
+   (set_attr "length"   "8")])
+
+(define_insn "umulsidi3"
+  [(set (match_operand:DI 0 "register_operand" "=&d")
+        (mult:DI
+         (zero_extend:DI (match_operand:SI 1 "register_operand" "d"))
+         (zero_extend:DI (match_operand:SI 2 "register_operand" "d"))))]
+  "!TARGET_SOFT_MUL && TARGET_MULTIPLY_HIGH"
+  "mul\t%L0,%1,%2\;mulhu\t%M0,%1,%2"
+  [(set_attr "type"     "no_delay_arith")
+   (set_attr "mode"     "DI")
+   (set_attr "length"   "8")])
+
+(define_insn "usmulsidi3"
+  [(set (match_operand:DI 0 "register_operand" "=&d")
+        (mult:DI
+         (zero_extend:DI (match_operand:SI 1 "register_operand" "d"))
+         (sign_extend:DI (match_operand:SI 2 "register_operand" "d"))))]
+  "!TARGET_SOFT_MUL && TARGET_MULTIPLY_HIGH"
+  "mul\t%L0,%1,%2\;mulhsu\t%M0,%2,%1"
+  [(set_attr "type"     "no_delay_arith")
+   (set_attr "mode"     "DI")
+   (set_attr "length"   "8")])
+
+(define_insn "smulsi3_highpart"
+  [(set (match_operand:SI 0 "register_operand"                            "=d")
+        (truncate:SI
+         (lshiftrt:DI
+          (mult:DI (sign_extend:DI (match_operand:SI 1 "register_operand"  "d"))
+                   (sign_extend:DI (match_operand:SI 2 "register_operand"  "d")))
+          (const_int 32))))]
+  "!TARGET_SOFT_MUL && TARGET_MULTIPLY_HIGH"
+  "mulh\t%0,%1,%2"
+  [(set_attr "type"     "imul")
+  (set_attr "mode"      "SI")
+  (set_attr "length"    "4")])
+
+(define_insn "umulsi3_highpart"
+  [(set (match_operand:SI 0 "register_operand"                            "=d")
+        (truncate:SI
+         (lshiftrt:DI
+          (mult:DI (zero_extend:DI (match_operand:SI 1 "register_operand"  "d"))
+                   (zero_extend:DI (match_operand:SI 2 "register_operand"  "d"))
+)
+          (const_int 32))))]
+  "!TARGET_SOFT_MUL && TARGET_MULTIPLY_HIGH"
+  "mulhu\t%0,%1,%2"
+  [(set_attr "type"     "imul")
+  (set_attr "mode"      "SI")
+  (set_attr "length"    "4")])
 
 ;;----------------------------------------------------------------
 ;; Division and remainder

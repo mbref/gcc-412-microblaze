@@ -30,8 +30,9 @@ dp-bit.c: $(srcdir)/config/fp-bit.c
 	cat $(srcdir)/config/fp-bit.c > dp-bit.c
 
 
-MULTILIB_OPTIONS = mxl-barrel-shift mno-xl-soft-mul
-MULTILIB_DIRNAMES = bs m
+MULTILIB_OPTIONS = mxl-barrel-shift mno-xl-soft-mul mxl-multiply-high
+MULTILIB_DIRNAMES = bs m mh
+MULTILIB_EXCEPTIONS = *mxl-barrel-shift/mxl-multiply-high mxl-multiply-high
 
 ## Unfortunately, this does not work. We have to find a way to do this. 
 ## Otherwise, -xl-blazeit will cause only the base libgcc to be picked up always.

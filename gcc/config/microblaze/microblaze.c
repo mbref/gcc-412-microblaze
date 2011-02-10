@@ -217,6 +217,7 @@ void microblaze_declare_object 			PARAMS ((FILE *, char *, char *, char *, int))
 int microblaze_valid_machine_decl_attribute 	PARAMS ((tree, tree, tree, tree));
 static bool microblaze_handle_option 		PARAMS ((size_t, const char *, int));
 int microblaze_is_interrupt_handler		PARAMS ((void));
+int microblaze_const_double_ok 			PARAMS ((rtx, enum machine_mode));
 
 /* Global variables for machine-dependent things.  */
 
@@ -1862,7 +1863,7 @@ microblaze_rtx_costs (
         *total = COSTS_N_INSNS (INTVAL (XEXP (x, 1)));
       else 
         *total = COSTS_N_INSNS (32 * 4);                /* Double the worst cost of shifts when there is no barrel shifter and the shift amount is in a reg */
-      return false;
+      return true;
     }
     case PLUS:								
     case MINUS:								
@@ -1871,12 +1872,18 @@ microblaze_rtx_costs (
       {						
         if (TARGET_HARD_FLOAT)
           *total = COSTS_N_INSNS (6);					
+	return true;
       } 
       else if (mode == DImode)
       {
         *total = COSTS_N_INSNS (4);					
-      } else
+	return true;
+      } 
+      else
+      {
         *total = COSTS_N_INSNS (1);
+	return true;
+      }
 
       return false;
     }									
@@ -1893,13 +1900,13 @@ microblaze_rtx_costs (
         if (TARGET_HARD_FLOAT)
           *total = COSTS_N_INSNS (6);					
       }
-      else if (!TARGET_SOFT_MUL) {                                                               
-        if (microblaze_version_compare (microblaze_select.cpu, "v5.00.a") >= 0)
-          *total = COSTS_N_INSNS (1);                                     
-        else 
-          *total = COSTS_N_INSNS (3);                                               
-      }                                                               
-      return false;
+      else if (!TARGET_SOFT_MUL) {                                                       if (microblaze_version_compare (microblaze_select.cpu, "v5.00.a") >= 0)
+         *total = COSTS_N_INSNS (1);
+      else
+          *total = COSTS_N_INSNS (3);
+      }
+      else *total =  COSTS_N_INSNS (10);
+      return true;
     }									
     case DIV:								
     case UDIV:								
@@ -2968,16 +2975,29 @@ override_options (void)
     microblaze_select.flags &= ~(MICROBLAZE_MASK_NO_UNSAFE_DELAY);
     microblaze_no_unsafe_delay = 0;
     microblaze_pipe = MICROBLAZE_PIPE_3;
-  } else if (ver == 0 || (microblaze_version_compare (microblaze_select.cpu, "v4.00.a") == 0)) {
+  } else if (ver == 0 || (microblaze_version_compare (microblaze_select.cpu, "v4.00.b") == 0)) {
     microblaze_select.flags |= (MICROBLAZE_MASK_NO_UNSAFE_DELAY);
     microblaze_no_unsafe_delay = 1;
     microblaze_pipe = MICROBLAZE_PIPE_3;
-  } else {                                                              /* v5.00.a or greater */
+  } else {
     microblaze_select.flags &= ~(MICROBLAZE_MASK_NO_UNSAFE_DELAY);
-    microblaze_no_unsafe_delay = 0;                              
-    target_flags |= MASK_PATTERN_COMPARE;                               /* Pattern compares are on by default in later versions of MB */
-    microblaze_pipe = MICROBLAZE_PIPE_5;
+    microblaze_no_unsafe_delay = 0;
+    microblaze_pipe = MICROBLAZE_PIPE_5;                                /* We agree to use 5 pipe-stage model even on area optimized 3 pipe-stage variants. */
+    if (microblaze_version_compare (microblaze_select.cpu, "v5.00.a") == 0 ||
+        microblaze_version_compare (microblaze_select.cpu, "v5.00.b") == 0 ||
+        microblaze_version_compare (microblaze_select.cpu, "v5.00.c") == 0) {
+        target_flags |= MASK_PATTERN_COMPARE;                           /* Pattern compares are to be turned on by default only when compiling for MB v5.00.'z' */
+    }
   }
+
+  ver = microblaze_version_compare (microblaze_select.cpu, "v6.00.a");
+  if (ver < 0) {
+      if (TARGET_MULTIPLY_HIGH)
+          warning (0, "-mxl-multiply-high can be used only with -mcpu=v6.00.a or greater.\n");
+  }
+
+  if (TARGET_MULTIPLY_HIGH && TARGET_SOFT_MUL)
+      error ("-mxl-multiply-high requires -mno-xl-soft-mul.\n");
 
   /* Always use DFA scheduler */
   microblaze_sched_use_dfa = 1;
@@ -4260,7 +4280,7 @@ microblaze_expand_prologue (void)
 #if 0
   rtx reg_18_save = NULL_RTX;
 #endif
-  rtx mem_rtx, reg_rtx, insn;
+  rtx mem_rtx, reg_rtx;
 
   /* If struct value address is treated as the first argument, make it so.  */
   if (aggregate_value_p (DECL_RESULT (fndecl), fntype)
