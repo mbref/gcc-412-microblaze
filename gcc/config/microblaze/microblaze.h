@@ -1954,13 +1954,6 @@ typedef struct microblaze_args {
 
 #define TRAMPOLINE_ALIGNMENT    32
 
-/* INITIALIZE_TRAMPOLINE calls this library function to flush
-   program and data caches.  */
-
-#ifndef CACHE_FLUSH_FUNC
-#define CACHE_FLUSH_FUNC "_flush_cache"
-#endif
-
 /* A C statement to initialize the variable parts of a trampoline. 
    ADDR is an RTX for the address of the trampoline; FNADDR is an
    RTX for the address of the nested function; STATIC_CHAIN is an
@@ -1972,14 +1965,6 @@ typedef struct microblaze_args {
   rtx addr = ADDR;							    \
   emit_move_insn (gen_rtx_MEM (SImode, plus_constant (addr, 32)), FUNC);   \
   emit_move_insn (gen_rtx_MEM (SImode, plus_constant (addr, 36)), CHAIN);  \
-									    \
-  /* Flush both caches.  We need to flush the data cache in case	    \
-     the system has a write-back cache.  */				    \
-  /* ??? Should check the return value for errors.  */			    \
-  emit_library_call (gen_rtx_SYMBOL_REF (Pmode, CACHE_FLUSH_FUNC),	    \
-		     0, VOIDmode, 3, addr, Pmode,			    \
-		     GEN_INT (TRAMPOLINE_SIZE), TYPE_MODE (integer_type_node),\
-		     GEN_INT (3), TYPE_MODE (integer_type_node));	    \
 }
 
 /* Addressing modes, and classification of registers for them.  */
