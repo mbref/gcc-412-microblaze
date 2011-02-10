@@ -3965,6 +3965,37 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
       else if (strncmp (argv[i], "-Wl,", 4) == 0)
 	{
 	  int prev, j;
+	  /* Check for linker script, translate to -Tscript. */
+	  if (strncmp (argv[i], "-Wl,-T",6) == 0)
+	    {
+	      char *opt;
+	      if (argv[i][6] == ',') 
+		{
+	          opt = xmalloc(1 + strlen(&argv[i][7]) + 1); 
+		  opt[0] = 'T';
+		  strcpy(&opt[1], &argv[i][7]);
+		  switches[n_switches].part1 = opt;
+		}
+	      else 
+	        {
+		  if (argv[i+1] && strncmp (argv[i+1], "-Wl,", 4) == 0)
+		    {
+	              opt = xmalloc(1 + strlen(&argv[i+1][4]) + 1); 
+		      opt[0] = 'T';
+		      strcpy(&opt[1], &argv[i+1][4]);
+		      switches[n_switches].part1 = opt;
+		      i++;
+		    }
+		  else 
+		    error ("linker specification is malformed");
+		    
+		}
+	     switches[n_switches].args = 0;
+	     switches[n_switches].live_cond = SWITCH_OK;
+	     switches[n_switches].validated = 0;
+	     n_switches++;
+	     continue;
+	    }
 	  /* Split the argument at commas.  */
 	  prev = 4;
 	  for (j = 4; argv[i][j]; j++)
