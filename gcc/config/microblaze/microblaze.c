@@ -5388,7 +5388,7 @@ output_ascii (FILE *file, const char *string, int len)
   fprintf (file, "\t.ascii\t\"");
   for (i = 0; i < len; i++)
   {
-    register int c = string[i];
+    register int c = (unsigned char)string[i];
 
     switch (c)
     {
