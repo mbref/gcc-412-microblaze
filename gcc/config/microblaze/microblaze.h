@@ -171,36 +171,17 @@ extern char *microblaze_no_clearbss;
 /* Macros used in the machine description to test the flags.  */
 
 /* Bits for real switches */
-#define MASK_SOFT_DIV           0x00000002      /* Mask for Soft Divide                         */
 #define MASK_MEMCPY             0x00000008      /* Call memcpy instead of inline code           */
 #define MASK_GAS                0x00000010	/* Gas used instead of MICROBLAZE as            */
 #define MASK_EMPTY1             0x00000020	/* Empty 1 */
 #define MASK_STATS              0x00000040	/* print statistics to stderr                   */
-#define MASK_PATTERN_COMPARE    0x00000080      /* Use extended pattern compare instructions    */
-#define MASK_SOFT_FLOAT         0x00000100	/* software floating point                      */
-#define MASK_STACK_CHECK        0x00000200      /* Do Stack checking                            */ 
 #define MASK_ABICALLS           0x00000400	/* emit .abicalls/.cprestore/.cpload            */
 #define MASK_HALF_PIC           0x00000800	/* Emit OSF-style pic refs to externs           */
 #define MASK_LONG_CALLS         0x00001000	/* Always call through a register               */
-#define MASK_BARREL_SHIFT       0x00002000      /* Use a barrel shifter as this is being provided with MicroBlaze */
 #define MASK_EMBEDDED_PIC       0x00004000	/* Generate embedded PIC code                   */
 #define MASK_EMBEDDED_DATA      0x00008000	/* Reduce RAM usage, not fast code              */
 #define MASK_BIG_ENDIAN         0x00010000	/* Generate big endian code                     */
-#define MASK_XLGPOPT            0x00020000	/* Optimize for Xilinx global pointer           */ 
-#define MASK_SOFT_MUL           0x00040000      /* Use software multiply instead of hardware    */
 #define MASK_SMALL_DIVIDES      0x10000000      /* Use table lookup for divides.                */
-                                                /* Dummy switches used only in spec's           */
-/* Debug & special switches for internal testing. Not documented  */
-#define MASK_DEBUG              0                       /* Eliminate version # in .s file               */
-#define MASK_DEBUG_A            0x40000000              /* don't allow <label>($reg) addrs              */
-#define MASK_DEBUG_B            0x20000000              /* GO_IF_LEGITIMATE_ADDRESS debug               */
-#define MASK_DEBUG_D            0                       /* don't do define_split's                      */
-#define MASK_DEBUG_E            0                       /* function_arg debug                           */
-#define MASK_DEBUG_F            0
-#define MASK_DEBUG_G            0                       /* don't support 64 bit arithmetic              */
-#define MASK_DEBUG_H            0                       /* allow ints in FP registers                   */
-#define MASK_DEBUG_I            0                       /* unused                                       */
-
 
 #define TARGET_GAS		(target_flags & MASK_GAS)
 #define TARGET_UNIX_ASM		(!TARGET_GAS)

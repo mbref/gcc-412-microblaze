@@ -24,11 +24,11 @@ Target Mask(SOFT_MUL)
 Use the soft multiply emulation
 
 mxl-soft-div
-Target Mask(MASK_SOFT_DIV)
+Target Mask(SOFT_DIV)
 Use the soft divide emulation
 
 mxl-barrel-shift
-Target Mask(MASK_BARREL_SHIFT)
+Target Mask(BARREL_SHIFT)
 Use the hardware barrel shifter instead of emulation
 
 msoft-float
@@ -40,7 +40,7 @@ Target Report RejectNegative InverseMask(SOFT_FLOAT, HARD_FLOAT)
 Allow the use of hardware floating-point instructions
 
 mxl-pattern-compare
-Target Joined Mask(MASK_PATTERN_COMPARE)
+Target Mask(PATTERN_COMPARE)
 Use pattern compare instructions
 
 msmall-divides
@@ -48,7 +48,7 @@ Target Joined
 Use table lookup optimization for small signed integer divisions
 
 mxl-stack-check
-Target Joined Mask(MASK_STACK_CHECK)
+Target Mask(STACK_CHECK)
 Check Stack at runtime
 
 mmemcpy
@@ -56,7 +56,7 @@ Target Joined
 Don't optimize block moves
 
 mxl-gp-opt
-Target Joined Mask(MASK_XLGPOPT)
+Target Mask(XLGPOPT)
 Use GP relative sdata/sbss sections[for xlnx]
 
 mstats
