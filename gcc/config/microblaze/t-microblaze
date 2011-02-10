@@ -11,11 +11,11 @@ LIB2FUNCS_EXTRA = $(srcdir)/config/microblaze/divsi3_table.c \
 EXTRA_MULTILIB_PARTS = crtbegin$(objext) crtend$(objext) crti$(objext) crtn$(objext) 
 
 # Build multiple copies of ?crt{i,n}.o, one for each target switch.
-$(T)crti$(objext): $(srcdir)/config/microblaze/crti.asm
-	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -c $(srcdir)/config/microblaze/crti.asm -o $(T)crti$(objext)
+$(T)crti$(objext): $(srcdir)/config/microblaze/crti.s
+	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -c $(srcdir)/config/microblaze/crti.s -o $(T)crti$(objext)
 
-$(T)crtn$(objext): $(srcdir)/config/microblaze/crtn.asm
-	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -c $(srcdir)/config/microblaze/crtn.asm -o $(T)crtn$(objext)
+$(T)crtn$(objext): $(srcdir)/config/microblaze/crtn.s
+	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -c $(srcdir)/config/microblaze/crtn.s -o $(T)crtn$(objext)
 
 # We want fine grained libraries, so use the new code
 # to build the floating point emulation libraries.
