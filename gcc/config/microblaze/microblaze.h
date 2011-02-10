@@ -1560,11 +1560,7 @@ contain (16 bit zero-extended integers).
    So currently we support only the current frame.  */
 
 #define RETURN_ADDR_RTX(count, frame)			\
-  ((count == 0)						\
-   ?  gen_rtx_PLUS (Pmode,                              \
-                    get_hard_reg_initial_val(Pmode, MB_ABI_SUB_RETURN_ADDR_REGNUM), \
-                    GEN_INT (8))                        \
-   : (rtx) 0)
+  microblaze_return_addr_rtx (count, frame)
 
 /* Structure to be filled in by compute_frame_size with register
    save masks, and offsets for the current function.  */

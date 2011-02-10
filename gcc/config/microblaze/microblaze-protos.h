@@ -37,6 +37,29 @@ extern void microblaze_expand_epilogue (void);
 extern void shift_double_left_imm    PARAMS ((rtx []));
 extern void override_options (void);
 extern void machine_dependent_reorg PARAMS ((void));
+extern rtx microblaze_legitimize_address PARAMS ((rtx , rtx,
+                                                  enum machine_mode));
+extern rtx microblaze_return_addr_rtx (int count,
+                                       rtx frameaddr ATTRIBUTE_UNUSED);
+extern int microblaze_const_double_ok PARAMS ((rtx, enum machine_mode));
+extern void init_cumulative_args  PARAMS ((CUMULATIVE_ARGS *,tree, rtx));
+extern int microblaze_can_use_return_insn PARAMS ((void));
+extern void microblaze_order_regs_for_local_alloc PARAMS ((void));
+extern HOST_WIDE_INT microblaze_debugger_offset PARAMS ((rtx, HOST_WIDE_INT));
+extern void output_ascii  PARAMS ((FILE *, const char *, int));
+extern void final_prescan_insn    PARAMS ((rtx, rtx *, int));
+extern void print_operand PARAMS ((FILE *, rtx, int));
+extern void print_operand_address PARAMS ((FILE *, rtx));
+int double_memory_operand                       PARAMS ((rtx, enum machine_mode));
+bool microblaze_legitimate_address_p            PARAMS ((enum machine_mode, rtx, int ));
+int simple_memory_operand                       PARAMS ((rtx, enum machine_mode));
+const char* microblaze_move_2words              PARAMS ((rtx *, rtx));
+int microblaze_is_interrupt_handler             PARAMS ((void));
+enum reg_class microblaze_secondary_reload_class PARAMS ((enum reg_class, enum machine_mode, rtx, int));
+int microblaze_regno_ok_for_base_p              PARAMS ((int, int));
+HOST_WIDE_INT microblaze_initial_elimination_offset
+                                                PARAMS ((int, int));
+void microblaze_declare_object                  PARAMS ((FILE *, char *, char *, char *, int));
 #endif  /* RTX_CODE */
 
 #ifdef TREE_CODE

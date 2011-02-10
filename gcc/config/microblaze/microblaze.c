@@ -55,7 +55,7 @@
 #include "target.h"
 #include "target-def.h"
 #include "tm_p.h"
-
+#include "integrate.h"
 
 #if defined(USG) || !defined(HAVE_STAB_H)
 #include "gstab.h"  /* If doing DBX on sysV, use our own stab.h.  */
@@ -562,6 +562,17 @@ static int microblaze_save_volatiles (tree);
 #define TARGET_PROMOTE_FUNCTION_RETURN 	hook_bool_tree_true
 
 struct gcc_target targetm = TARGET_INITIALIZER;
+
+rtx
+microblaze_return_addr_rtx (int count, rtx frameaddr ATTRIBUTE_UNUSED)
+{
+  rtx x;
+
+  x = (count == 0) ? gen_rtx_PLUS (Pmode,
+          get_hard_reg_initial_val(Pmode, MB_ABI_SUB_RETURN_ADDR_REGNUM),
+               GEN_INT (8)) : (rtx) 0;
+  return x;
+}
 
 /* Return truth value if a CONST_DOUBLE is ok to be a legitimate constant.  */
 
