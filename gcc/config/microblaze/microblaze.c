@@ -4158,7 +4158,7 @@ save_restore_insns (int prologue)
       reg_rtx = gen_rtx_REG (gpr_mode, regno);  
       insn = gen_rtx_PLUS (Pmode, base_reg_rtx, GEN_INT (gp_offset));
       mem_rtx = gen_rtx_MEM (gpr_mode, insn);
-      if (interrupt_handler)
+      if (interrupt_handler || save_volatiles)
         MEM_VOLATILE_P (mem_rtx) = 1;                         /* Do not optimize in flow analysis */    
 
       if (prologue)
