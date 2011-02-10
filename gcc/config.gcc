@@ -287,6 +287,9 @@ m680[012]0-*-*)
 m68k-*-*)
 	extra_headers=math-68881.h
 	;;
+microblaze*-*-*)
+        cpu_type=microblaze
+        ;;
 mips*-*-*)
 	cpu_type=mips
 	need_64bit_hwint=yes
@@ -1445,6 +1448,10 @@ mcore-*-pe*)
 	tmake_file=mcore/t-mcore-pe
 	use_fixproto=yes
 	;;
+microblaze*-*-*)
+        tm_file="microblaze/microblaze.h"
+        tmake_file=microblaze/t-microblaze
+        ;;
 mips-sgi-irix[56]*)
 	tm_file="elfos.h ${tm_file} mips/iris.h"
 	tmake_file="mips/t-iris mips/t-slibgcc-irix"
