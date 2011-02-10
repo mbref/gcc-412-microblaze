@@ -44,7 +44,7 @@ Target Mask(PATTERN_COMPARE)
 Use pattern compare instructions
 
 msmall-divides
-Target Joined Mask(SMALL_DIVIDES)
+Target Mask(SMALL_DIVIDES)
 Use table lookup optimization for small signed integer divisions
 
 mxl-stack-check
