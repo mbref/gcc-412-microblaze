@@ -785,6 +785,21 @@
   (set_attr "mode"      "SI")
   (set_attr "length"    "4")])
 
+(define_insn "usmulsi3_highpart"
+  [(set (match_operand:SI 0 "register_operand"                            "=d")
+        (truncate:SI
+         (lshiftrt:DI
+          (mult:DI (zero_extend:DI (match_operand:SI 1 "register_operand"  "d"))
+                   (sign_extend:DI (match_operand:SI 2 "register_operand"  "d"))
+)
+          (const_int 32))))]
+  "!TARGET_SOFT_MUL && TARGET_MULTIPLY_HIGH"
+  "mulhsu\t%0,%2,%1"
+  [(set_attr "type"     "imul")
+  (set_attr "mode"      "SI")
+  (set_attr "length"    "4")])
+
+
 ;;----------------------------------------------------------------
 ;; Division and remainder
 ;;----------------------------------------------------------------
