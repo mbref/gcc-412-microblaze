@@ -37,3 +37,4 @@ MULTILIB_EXCEPTIONS = *mxl-barrel-shift/mxl-multiply-high mxl-multiply-high
 ## Unfortunately, this does not work. We have to find a way to do this. 
 ## Otherwise, -xl-blazeit will cause only the base libgcc to be picked up always.
 ## MULTILIB_MATCHES = Zxl-blazeit=mxl-barrel-shift Zxl-blazeit=mno-xl-soft-mul
+

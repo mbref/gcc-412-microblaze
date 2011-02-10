@@ -38,4 +38,11 @@ extern void shift_double_left_imm    PARAMS ((rtx []));
 extern void override_options (void);
 extern void machine_dependent_reorg PARAMS ((void));
 #endif  /* RTX_CODE */
+
+#ifdef TREE_CODE
+extern void function_arg_advance (CUMULATIVE_ARGS *, enum machine_mode,
+				  tree, int);
+extern rtx function_arg (CUMULATIVE_ARGS *, enum machine_mode, tree, int);
+#endif /* TREE_CODE */
+
 #endif  /* __MICROBLAZE_PROTOS__ */

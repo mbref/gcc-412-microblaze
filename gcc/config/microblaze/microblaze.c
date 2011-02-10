@@ -203,8 +203,6 @@ int simple_memory_operand 			PARAMS ((rtx, enum machine_mode));
 void trace 					PARAMS ((const char *, const char *, const char *));
 void gen_conditional_branch 			PARAMS ((rtx *, enum rtx_code));
 void init_cumulative_args 			PARAMS ((CUMULATIVE_ARGS *,tree, rtx));
-void function_arg_advance 			PARAMS ((CUMULATIVE_ARGS *, enum machine_mode, tree, int));
-struct rtx_def *function_arg 			PARAMS ((CUMULATIVE_ARGS *, enum machine_mode, tree, int));
 int function_arg_partial_nregs 			PARAMS ((CUMULATIVE_ARGS *, enum machine_mode, tree, int));
 HOST_WIDE_INT microblaze_debugger_offset 	PARAMS ((rtx, HOST_WIDE_INT));
 void microblaze_output_lineno 			PARAMS ((FILE *, int));
@@ -2721,7 +2719,7 @@ function_arg_advance (
 /* Return an RTL expression containing the register for the given mode,
    or 0 if the argument is to be passed on the stack.  */
 
-struct rtx_def *
+rtx
 function_arg (
   CUMULATIVE_ARGS *cum,		/* current arg information */
   enum machine_mode mode,	/* current arg mode */
