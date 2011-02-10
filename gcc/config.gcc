@@ -1928,7 +1928,7 @@ s390x-ibm-tpf*)
 	;;
 sh-*-elf* | sh[12346l]*-*-elf* | sh*-*-kaos* | \
 sh-*-symbianelf* | sh[12346l]*-*-symbianelf* | \
-  sh-*-linux* | sh[346lbe]*-*-linux* | \
+  sh*-*-linux* | sh[346lbe]*-*-linux* | \
   sh-*-netbsdelf* | shl*-*-netbsdelf* | sh5-*-netbsd* | sh5l*-*-netbsd* | \
    sh64-*-netbsd* | sh64l*-*-netbsd*)
 	tmake_file="${tmake_file} sh/t-sh sh/t-elf"
@@ -2380,6 +2380,12 @@ m32c-*-elf*)
 	echo "*** Configuration ${target} not supported" 1>&2
 	exit 1
 	;;
+esac
+
+# Rather than hook into each target, just do it after all the linux
+# targets have been processed
+case ${target} in
+*-linux-uclibc*) tm_defines="${tm_defines} USE_UCLIBC" ; tmake_file="${tmake_file} t-linux-uclibc"
 esac
 
 case ${target} in

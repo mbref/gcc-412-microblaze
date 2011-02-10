@@ -107,6 +107,11 @@ Boston, MA 02110-1301, USA.  */
 #define LINK_EMULATION "elf_i386"
 #define DYNAMIC_LINKER "/lib/ld-linux.so.2"
 
+#if defined USE_UCLIBC
+#undef DYNAMIC_LINKER
+#define DYNAMIC_LINKER "/lib/ld-uClibc.so.0"
+#endif
+
 #undef  SUBTARGET_EXTRA_SPECS
 #define SUBTARGET_EXTRA_SPECS \
   { "link_emulation", LINK_EMULATION },\

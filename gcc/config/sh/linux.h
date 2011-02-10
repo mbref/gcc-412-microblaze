@@ -56,12 +56,21 @@ Boston, MA 02110-1301, USA.  */
 #undef SUBTARGET_LINK_EMUL_SUFFIX
 #define SUBTARGET_LINK_EMUL_SUFFIX "_linux"
 #undef SUBTARGET_LINK_SPEC
+#ifdef USE_UCLIBC
+#define SUBTARGET_LINK_SPEC \
+  "%{shared:-shared} \
+   %{!static: \
+     %{rdynamic:-export-dynamic} \
+     %{!dynamic-linker:-dynamic-linker /lib/ld-uClibc.so.0}} \
+   %{static:-static}"
+#else
 #define SUBTARGET_LINK_SPEC \
   "%{shared:-shared} \
    %{!static: \
      %{rdynamic:-export-dynamic} \
      %{!dynamic-linker:-dynamic-linker /lib/ld-linux.so.2}} \
    %{static:-static}"
+#endif
 
 /* Output assembler code to STREAM to call the profiler.  */
 

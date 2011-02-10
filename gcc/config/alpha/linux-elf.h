@@ -27,7 +27,11 @@ Boston, MA 02110-1301, USA.  */
 #define SUBTARGET_EXTRA_SPECS \
 { "elf_dynamic_linker", ELF_DYNAMIC_LINKER },
 
+#if defined USE_UCLIBC
+#define ELF_DYNAMIC_LINKER	"/lib/ld-uClibc.so.0"
+#else
 #define ELF_DYNAMIC_LINKER	"/lib/ld-linux.so.2"
+#endif
 
 #define LINK_SPEC "-m elf64alpha %{G*} %{relax:-relax}		\
   %{O*:-O3} %{!O*:-O1}						\

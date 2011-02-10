@@ -51,7 +51,11 @@
 
 #define LIBGCC_SPEC "%{msoft-float:-lfloat} %{mfloat-abi=soft*:-lfloat} -lgcc"
 
+#ifdef USE_UCLIBC
+#define LINUX_TARGET_INTERPRETER "/lib/ld-uClibc.so.0"
+#else
 #define LINUX_TARGET_INTERPRETER "/lib/ld-linux.so.2"
+#endif
 
 #define LINUX_TARGET_LINK_SPEC  "%{h*} %{version:-v} \
    %{b} \
