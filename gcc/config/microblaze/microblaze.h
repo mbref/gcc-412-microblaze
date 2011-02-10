@@ -635,14 +635,21 @@ while (0)
 /* Don't generate .loc operations. */
 #define DWARF2_ASM_LINE_DEBUG_INFO 0
 
+#if 0
 /* The mapping from gcc register number to DWARF 2 CFA column number.
  */
 #define DWARF_FRAME_REGNUM(REG)				\
   (REG == GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM ? DWARF_FRAME_RETURN_COLUMN : REG)
+#endif
 
 /* The DWARF 2 CFA column which tracks the return address.  */
 #define DWARF_FRAME_RETURN_COLUMN (FP_REG_LAST + 1)
-#define INCOMING_RETURN_ADDR_RTX  gen_rtx_REG (VOIDmode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)
+
+/* Initial state of return address on entry to func = R15.
+   Actually, the RA is at R15+8, but gcc doesn't know how 
+   to generate this. */
+#define INCOMING_RETURN_ADDR_RTX  			\
+  gen_rtx_REG (VOIDmode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)
 
 /* Use DWARF 2 debugging information by default.  */
 #define DWARF2_DEBUGGING_INFO
