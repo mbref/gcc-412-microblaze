@@ -17,6 +17,7 @@
 
 	.globl	__mulsi3
 	.ent	__mulsi3
+	.type	__mulsi3,@function
 __mulsi3:
 	.frame	r1,0,r15
 	add	r3,r0,r0
@@ -48,4 +49,4 @@ $L_Result_Is_Zero:
 	rtsd	r15,8
 	addi	r3,r0,0
 	.end __mulsi3
-	
+	.size	__mulsi3, . - __mulsi3

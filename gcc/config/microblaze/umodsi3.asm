@@ -19,6 +19,7 @@
 	
 	.globl	__umodsi3
 	.ent	__umodsi3
+	.type	__umodsi3,@function
 __umodsi3:
 	.frame	r1,0,r15	
 
@@ -87,4 +88,4 @@ $LaRETURN_HERE:
 	rtsd 	r15,8
 	addik 	r1,r1,12
 .end __umodsi3
-	
+	.size	__umodsi3, . - __umodsi3

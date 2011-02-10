@@ -17,7 +17,6 @@
 	
 	.globl	__udivsi3
 	.ent	__udivsi3
-	.type	__udivsi3,@function
 __udivsi3:
 	.frame	r1,0,r15	
 
@@ -83,4 +82,4 @@ $LaRETURN_HERE:
 	RTSD    r15,8
 	ADDIK   r1,r1,12
         .end __udivsi3
-	.size	__udivsi3, . - __udivsi3
+	
