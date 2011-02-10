@@ -991,6 +991,16 @@ while (0)
 	|| TREE_CODE (TYPE) == UNION_TYPE				\
 	|| TREE_CODE (TYPE) == RECORD_TYPE)) ? BITS_PER_WORD : (ALIGN))
 
+/* A C expression to compute the alignment for a variables in the
+   local store.  TYPE is the data type, and ALIGN is the alignment
+   that the object would ordinarily have.
+   
+   We handle QImode arrays specially. It enables string operations
+   to be optimally handled using pattern comparator instructions */
+#define LOCAL_ALIGNMENT(TYPE, ALIGN)                                            \
+    ((TREE_CODE (TYPE) == ARRAY_TYPE && TYPE_MODE (TREE_TYPE (TYPE)) == QImode	\
+     && (ALIGN) < BITS_PER_WORD) ? BITS_PER_WORD : (ALIGN))
+
 /* Define if operations between registers always perform the operation
    on the full register even if a narrower mode is specified.  */
 #define WORD_REGISTER_OPERATIONS
