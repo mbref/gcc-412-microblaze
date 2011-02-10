@@ -3975,6 +3975,8 @@ microblaze_function_prologue (
     else 
       assemble_name (file, fnname); 
     fputs ("\n", file);
+    if (!interrupt_handler)
+      ASM_OUTPUT_TYPE_DIRECTIVE(file, fnname, "function");
   }
 
   assemble_name (file, fnname);
