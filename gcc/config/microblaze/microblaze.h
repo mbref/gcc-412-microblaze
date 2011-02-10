@@ -3213,7 +3213,7 @@ void FN ()                                                                      
    definition in crtstuff.c */
 #define CRT_CALL_STATIC_FUNCTION(SECTION_OP, FUNC)	\
     asm ( SECTION_OP "\n"                               \
-          "\tbralid   r15, " #FUNC "\n\t nop\n"         \
+          "\tbrlid   r15, " #FUNC "\n\t nop\n"         \
           TEXT_SECTION_ASM_OP);
 
 /* #define CTOR_LIST_BEGIN                                 \ */

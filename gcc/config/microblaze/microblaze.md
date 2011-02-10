@@ -3340,6 +3340,11 @@
                 emit_insn (RTVEC_ELT (adjust, i));
 	}
 
+        if (GET_CODE (XEXP (operands[0], 0)) == UNSPEC)
+          emit_call_insn (gen_call_internal_plt0 (operands[0], operands[1],
+                                            gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM),
+                                            pic_offset_table_rtx));
+        else
         emit_call_insn (gen_call_internal0 (operands[0], operands[1],
                                             gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
 
@@ -3358,10 +3363,22 @@
   }
 )
  
+(define_expand "call_internal_plt0"
+  [(parallel [(call (match_operand 0 "" "")
+		    (match_operand 1 "" ""))
+             (clobber (match_operand:SI 2 "" ""))
+             (use (match_operand:SI 3 "" ""))])]
+  ""
+  {
+    /*      fprintf(stderr,"expand \t call_internal_plt0  \n");*/
+  }
+)
+ 
 (define_insn "call_internal_plt"
   [(call (mem (match_operand:SI 0 "call_insn_plt_operand" ""))
 	 (match_operand:SI 1 "" "i"))
-  (clobber (reg:SI R_SR))]
+  (clobber (reg:SI R_SR))
+  (use (reg:SI R_GOT))]
   "flag_pic"
   {
     register rtx target = operands[0];
@@ -3445,8 +3462,13 @@
         if (GET_CODE (operands[0]) == PARALLEL)
             operands[0] = XEXP (XVECEXP (operands[0], 0, 0), 0);
 
-        emit_call_insn (gen_call_value_internal0 (operands[0], operands[1], operands[2],
-		        gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
+        if (GET_CODE (XEXP (operands[1], 0)) == UNSPEC)
+          emit_call_insn (gen_call_value_intern_plt0 (operands[0], operands[1], operands[2],
+                          gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM),
+                          pic_offset_table_rtx));
+        else
+          emit_call_insn (gen_call_value_internal0 (operands[0], operands[1], operands[2],
+                          gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
 
         DONE;
     }
@@ -3493,11 +3515,24 @@
   }
 )
 
+(define_expand "call_value_intern_plt0"
+  [(parallel[(set (match_operand 0 "" "")
+                  (call (match_operand 1 "" "")
+                        (match_operand 2 "" "")))
+             (clobber (match_operand:SI 3 "" ""))
+             (use (match_operand:SI 4 "" ""))])]
+  "flag_pic"
+  { 
+    /* fprintf(stderr,"expand \t call_value_intern_plt0  \n"); */
+  }
+)
+
 (define_insn "call_value_intern_plt"
   [(parallel[(set (match_operand 0 "register_operand" "=df")
                   (call (mem (match_operand:SI 1 "call_insn_plt_operand" ""))
                         (match_operand:SI 2 "" "i")))
-             (clobber (match_operand:SI 3 "register_operand" "=d"))])]
+             (clobber (match_operand:SI 3 "register_operand" "=d"))
+             (use (match_operand:SI 4 "register_operand"))])]
   "flag_pic"
   { 
     register rtx target = operands[1];
