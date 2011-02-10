@@ -222,7 +222,7 @@ extern char *microblaze_no_clearbss;
 
 
 /* Default target_flags if no switches are specified  */
-#define TARGET_DEFAULT      (0)
+#define TARGET_DEFAULT      (MASK_SOFT_MUL | MASK_SOFT_DIV | MASK_SOFT_FLOAT)
 
 #ifndef TARGET_CPU_DEFAULT
 #define TARGET_CPU_DEFAULT 0
@@ -232,31 +232,12 @@ extern char *microblaze_no_clearbss;
 #define TARGET_ENDIAN_DEFAULT MASK_BIG_ENDIAN
 #endif
 
-#ifndef MULTILIB_DEFAULTS
-#if TARGET_ENDIAN_DEFAULT == 0
-#define MULTILIB_DEFAULTS { "EL", "microblaze" }
-#else
-#define MULTILIB_DEFAULTS { "EB", "microblaze" }
-#endif
-#endif
-
 /* What is the default setting for -mcpu= . We set it to v4.00.a even though 
    we are actually ahead. This is safest version that has generate code compatible 
    for the original ISA */
 #define MICROBLAZE_DEFAULT_CPU      "v4.00.a"               
 
-/* We must pass -EL to the linker by default for little endian embedded
-   targets using linker scripts with a OUTPUT_FORMAT line.  Otherwise, the
-   linker will default to using big-endian output files.  The OUTPUT_FORMAT
-   line must be in the linker script, otherwise -EB/-EL will not work.  */
-
-#ifndef LINKER_ENDIAN_SPEC
-#if TARGET_ENDIAN_DEFAULT == 0
-#define LINKER_ENDIAN_SPEC "%{!EB:%{!meb:-EL}}"
-#else
 #define LINKER_ENDIAN_SPEC ""
-#endif
-#endif
 
 
 /* Macros to decide whether certain features are available or not,
@@ -330,23 +311,13 @@ while (0)
 /* Show we can debug even without a frame pointer.  */
 #define CAN_DEBUG_WITHOUT_FP
 
-/* Complain about missing specs and predefines that should be defined in each
-   of the target tm files to override the defaults.  This is mostly a place-
-   holder until I can get each of the files updated [mm].  */
-
-#if defined(OSF_OS) \
-    || defined(MICROBLAZE_SYSV) \
-    || defined(MICROBLAZE_SVR4) \
-    || defined(MICROBLAZE_BSD43)
-
-#ifndef STARTFILE_SPEC
-#error "Define STARTFILE_SPEC in the appropriate tm.h file"
-#endif
-
-#ifndef MACHINE_TYPE
-#error "Define MACHINE_TYPE in the appropriate tm.h file"
-#endif
-#endif
+#define DRIVER_SELF_SPECS    				\
+	"%{mxl-soft-mul:%<mno-xl-soft-mul}", 		\
+	"%{mno-xl-multiply-high:%<mxl-multiply-high}", 	\
+	"%{mno-xl-barrel-shift:%<mxl-barrel-shift}", 	\
+	"%{mno-xl-pattern-compare:%<mxl-pattern-compare}", \
+	"%{mxl-soft-div:%<mno-xl-soft-div}", 		\
+	"%{msoft-float:%<mhard-float}", 
 
 /* Tell collect what flags to pass to nm.  */
 #ifndef NM_FLAGS
@@ -494,14 +465,12 @@ while (0)
 /* CC1_SPEC is the set of arguments to pass to the compiler proper.  */
 
 #ifndef CC1_SPEC
-#define CC1_SPEC "\
+#define CC1_SPEC " \
 %{G*} %{gline:%{!g:%{!g0:%{!g1:%{!g2: -g1}}}}} \
 %{save-temps: } \
-%(subtarget_cc1_spec)\
-%{Zxl-blazeit: %{!mxl-soft-mul: -mno-xl-soft-mul} %{!mxl-soft-div: -mno-xl-soft-div} -mxl-barrel-shift}\
-%{!mno-xl-soft-mul: %{!Zxl-blazeit: -mxl-soft-mul}}\
-%{!mno-xl-soft-div: %{!Zxl-blazeit: -mxl-soft-div}}\
-%{!mhard-float: -msoft-float}\
+%(subtarget_cc1_spec) \
+%{Zxl-blazeit: -mno-xl-soft-mul -mno-xl-soft-div -mxl-barrel-shift \
+-mxl-pattern-compare -mxl-multiply-high} \
 "
 #endif
 
@@ -532,11 +501,12 @@ while (0)
 %{.S:	-D__LANGUAGE_ASSEMBLY -D_LANGUAGE_ASSEMBLY %{!ansi:-DLANGUAGE_ASSEMBLY}} \
 %{.s:	-D__LANGUAGE_ASSEMBLY -D_LANGUAGE_ASSEMBLY %{!ansi:-DLANGUAGE_ASSEMBLY}} \
 %{!.S: %{!.s: %{!.cc: %{!.cxx: %{!.C: %{!.m: -D__LANGUAGE_C -D_LANGUAGE_C %{!ansi:-DLANGUAGE_C}}}}}}} \
-%{mno-xl-soft-mul: -DHAVE_HW_MUL}       \
-%{mno-xl-soft-div: -DHAVE_HW_DIV}       \
-%{mxl-barrel-shift: -DHAVE_HW_BSHIFT}   \
-%{mxl-pattern-compare: -DHAVE_HW_PCMP}  \
-%{mhard-float: -DHAVE_HW_FPU}           \
+%{mno-xl-soft-mul: -DHAVE_HW_MUL}       	\
+%{mxl-multiply-high: -DHAVE_HW_MUL_HIGH}    	\
+%{mno-xl-soft-div: -DHAVE_HW_DIV}       	\
+%{mxl-barrel-shift: -DHAVE_HW_BSHIFT}   	\
+%{mxl-pattern-compare: -DHAVE_HW_PCMP}  	\
+%{mhard-float: -DHAVE_HW_FPU}           	\
 "
 #endif
 
