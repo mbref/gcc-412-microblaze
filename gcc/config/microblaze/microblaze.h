@@ -1897,7 +1897,8 @@ typedef struct microblaze_args {
 #define FUNCTION_PROFILER(FILE, LABELNO) { \
   {                                        \
     char *fnname = XSTR (XEXP (DECL_RTL (current_function_decl), 0), 0); \
-    fprintf (FILE, "\tbrki\tr16,_mcount\n");           \
+    fprintf (FILE, "\tbralid\tr15,_mcount;\n");           \
+    fprintf (FILE, "\tnop;\n"); \
   }                                                    \
  }
 
