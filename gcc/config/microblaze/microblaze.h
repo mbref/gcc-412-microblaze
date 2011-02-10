@@ -85,14 +85,6 @@ enum block_move_type {
     BLOCK_MOVE_LAST			/* generate just the last store */
 };
 
-/* microblaze_cpu_select contains CPU info */
-struct microblaze_cpu_select
-{
-    const char *cpu;
-    const char *tune;
-    unsigned int flags;
-};
-
 #define MICROBLAZE_MASK_NO_UNSAFE_DELAY         0x00000001
 
 extern char microblaze_reg_names[][8];          /* register names (a0 vs. $4). */

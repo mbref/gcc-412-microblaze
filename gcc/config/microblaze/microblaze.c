@@ -222,12 +222,7 @@ static int microblaze_must_save_register 	PARAMS ((int));
 
 /* Global variables for machine-dependent things.  */
 
-struct microblaze_cpu_select microblaze_select =
-{
-  MICROBLAZE_DEFAULT_CPU,                 /* CPU      */
-  "none",                                 /* Tuning   */
-  0                                       /* Flags    */
-};
+static unsigned int microblaze_select_flags = 0;
 
 /* Toggle which pipleline interface to use */
 int microblaze_sched_use_dfa = 0;
@@ -582,6 +577,9 @@ static int microblaze_save_volatiles (tree);
 
 #undef TARGET_HANDLE_OPTION
 #define TARGET_HANDLE_OPTION		microblaze_handle_option
+
+#undef TARGET_DEFAULT_TARGET_FLAGS
+#define TARGET_DEFAULT_TARGET_FLAGS	TARGET_DEFAULT
 
 struct gcc_target targetm = TARGET_INITIALIZER;
 
@@ -1855,7 +1853,7 @@ microblaze_rtx_costs (
     case LSHIFTRT:	
     {
       if (TARGET_BARREL_SHIFT) {
-        if (microblaze_version_compare (microblaze_select.cpu, "v5.00.a") >= 0)
+        if (microblaze_version_compare (microblaze_select_cpu, "v5.00.a") >= 0)
           *total = COSTS_N_INSNS (1);                                         
         else
           *total = COSTS_N_INSNS (2);
@@ -1901,7 +1899,7 @@ microblaze_rtx_costs (
         if (TARGET_HARD_FLOAT)
           *total = COSTS_N_INSNS (6);					
       }
-      else if (!TARGET_SOFT_MUL) {                                                       if (microblaze_version_compare (microblaze_select.cpu, "v5.00.a") >= 0)
+      else if (!TARGET_SOFT_MUL) {                                                       if (microblaze_version_compare (microblaze_select_cpu, "v5.00.a") >= 0)
          *total = COSTS_N_INSNS (1);
       else
           *total = COSTS_N_INSNS (3);
@@ -2964,32 +2962,34 @@ override_options (void)
   microblaze_section_threshold = g_switch_set ? g_switch_value : MICROBLAZE_DEFAULT_GVALUE;
 
   /* Check the Microblaze CPU version for any special action that needs to be done */
-  ver = microblaze_version_to_int (microblaze_select.cpu);
+  if (microblaze_select_cpu == NULL) 
+    microblaze_select_cpu = MICROBLAZE_DEFAULT_CPU;
+  ver = microblaze_version_to_int (microblaze_select_cpu);
   if (ver == -1) {
-    error ("(%s) is an invalid argument to -mcpu=\n", microblaze_select.cpu);
+    error ("(%s) is an invalid argument to -mcpu=\n", microblaze_select_cpu);
   }
 
-  ver = microblaze_version_compare (microblaze_select.cpu, "v3.00.a");
+  ver = microblaze_version_compare (microblaze_select_cpu, "v3.00.a");
   if (ver < 0) {                                                        /* No hardware exceptions in earlier versions. So no worries */
-    microblaze_select.flags &= ~(MICROBLAZE_MASK_NO_UNSAFE_DELAY);
+    microblaze_select_flags &= ~(MICROBLAZE_MASK_NO_UNSAFE_DELAY);
     microblaze_no_unsafe_delay = 0;
     microblaze_pipe = MICROBLAZE_PIPE_3;
-  } else if (ver == 0 || (microblaze_version_compare (microblaze_select.cpu, "v4.00.b") == 0)) {
-    microblaze_select.flags |= (MICROBLAZE_MASK_NO_UNSAFE_DELAY);
+  } else if (ver == 0 || (microblaze_version_compare (microblaze_select_cpu, "v4.00.b") == 0)) {
+    microblaze_select_flags |= (MICROBLAZE_MASK_NO_UNSAFE_DELAY);
     microblaze_no_unsafe_delay = 1;
     microblaze_pipe = MICROBLAZE_PIPE_3;
   } else {
-    microblaze_select.flags &= ~(MICROBLAZE_MASK_NO_UNSAFE_DELAY);
+    microblaze_select_flags &= ~(MICROBLAZE_MASK_NO_UNSAFE_DELAY);
     microblaze_no_unsafe_delay = 0;
     microblaze_pipe = MICROBLAZE_PIPE_5;                                /* We agree to use 5 pipe-stage model even on area optimized 3 pipe-stage variants. */
-    if (microblaze_version_compare (microblaze_select.cpu, "v5.00.a") == 0 ||
-        microblaze_version_compare (microblaze_select.cpu, "v5.00.b") == 0 ||
-        microblaze_version_compare (microblaze_select.cpu, "v5.00.c") == 0) {
+    if (microblaze_version_compare (microblaze_select_cpu, "v5.00.a") == 0 ||
+        microblaze_version_compare (microblaze_select_cpu, "v5.00.b") == 0 ||
+        microblaze_version_compare (microblaze_select_cpu, "v5.00.c") == 0) {
         target_flags |= MASK_PATTERN_COMPARE;                           /* Pattern compares are to be turned on by default only when compiling for MB v5.00.'z' */
     }
   }
 
-  ver = microblaze_version_compare (microblaze_select.cpu, "v6.00.a");
+  ver = microblaze_version_compare (microblaze_select_cpu, "v6.00.a");
   if (ver < 0) {
       if (TARGET_MULTIPLY_HIGH)
           warning (0, "-mxl-multiply-high can be used only with -mcpu=v6.00.a or greater.\n");
