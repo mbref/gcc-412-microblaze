@@ -64,34 +64,34 @@ Target Joined
 Output compiler statistics
 
 mdebug
-Target Var(TARGET_DEBUG_MODE) Undocumented
+Target Mask(DEBUG_MODE) Undocumented
 
 mdebuga
-Target Var(TARGET_DEBUG_A_MODE) Undocumented
+Target Mask(DEBUG_A_MODE) Undocumented
 
 mdebugb
-Target Var(TARGET_DEBUG_B_MODE) Undocumented
+Target Mask(DEBUG_B_MODE) Undocumented
 
 mdebugc
-Target Var(TARGET_DEBUG_C_MODE) Undocumented
+Target Mask(DEBUG_C_MODE) Undocumented
 
 mdebugd
-Target Var(TARGET_DEBUG_D_MODE) Undocumented
+Target Mask(DEBUG_D_MODE) Undocumented
 
 mdebuge
-Target Var(TARGET_DEBUG_E_MODE) Undocumented
+Target Mask(DEBUG_E_MODE) Undocumented
 
 mdebugf
-Target Var(TARGET_DEBUG_F_MODE) Undocumented
+Target Mask(DEBUG_F_MODE) Undocumented
 
 mdebugg
-Target Var(TARGET_DEBUG_G_MODE) Undocumented
+Target Mask(DEBUG_G_MODE) Undocumented
 
 mdebugh
-Target Var(TARGET_DEBUG_H_MODE) Undocumented
+Target Mask(DEBUG_H_MODE) Undocumented
 
 mdebugi
-Target Var(TARGET_DEBUG_I_MODE) Undocumented
+Target Mask(DEBUG_I_MODE) Undocumented
 
 mcpu=
 Target RejectNegative Joined Var(microblaze_select_cpu)
@@ -101,6 +101,6 @@ mtune=
 Target RejectNegative Joined Var(microblaze_select_tune)
 -mtune=PROCESSOR	Schedule code for given CPU
 
-mclearbss
-Target 
+mno-clearbss
+Target RejectNegative
 Clear the BSS to zero and place zero initialized in BSS

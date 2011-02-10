@@ -713,8 +713,8 @@
 
         emit_insn (gen_ashlsi3_bshift (regt1, operands[1], GEN_INT(4)));
         emit_insn (gen_addsi3 (regt1, regt1, operands[2]));
-        mem_rtx = gen_rtx (MEM, QImode,
-                            gen_rtx (PLUS, Pmode, regt1, div_table_rtx));
+        mem_rtx = gen_rtx_MEM (QImode,
+                            gen_rtx_PLUS (Pmode, regt1, div_table_rtx));
 
         insn = emit_insn (gen_movqi (regqi, mem_rtx)); 
         insn = emit_insn (gen_movsi (operands[0], gen_rtx_SUBREG (SImode, regqi, 0)));
@@ -1379,7 +1379,7 @@
     {
         rtx temp;
         temp = embedded_pic_offset (operands[1]);
-        temp = gen_rtx (PLUS, Pmode, embedded_pic_fnaddr_rtx,
+        temp = gen_rtx_PLUS (Pmode, embedded_pic_fnaddr_rtx,
 	                force_reg (DImode, temp));
         emit_move_insn (operands[0], force_reg (DImode, temp));
         DONE;
@@ -1394,7 +1394,7 @@
         /* if (! SMALL_INT (temp2))
 	temp2 = force_reg (DImode, temp2);
         */
-        emit_move_insn (operands[0], gen_rtx (PLUS, DImode, temp, temp2));
+        emit_move_insn (operands[0], gen_rtx_PLUS (DImode, temp, temp2));
         DONE;
     }
 
@@ -1505,7 +1505,7 @@
         rtx temp;
 
         temp = embedded_pic_offset (operands[1]);
-        temp = gen_rtx (PLUS, Pmode, embedded_pic_fnaddr_rtx,
+        temp = gen_rtx_PLUS (Pmode, embedded_pic_fnaddr_rtx,
 	                force_reg (SImode, temp));
         emit_move_insn (operands[0], force_reg (SImode, temp));
         DONE;
@@ -1521,7 +1521,7 @@
         /* if (! SMALL_INT (temp2))
 	   temp2 = force_reg (SImode, temp2);
         */
-        emit_move_insn (operands[0], gen_rtx (PLUS, SImode, temp, temp2));
+        emit_move_insn (operands[0], gen_rtx_PLUS (SImode, temp, temp2));
         DONE;
     }
 
@@ -3410,7 +3410,7 @@
 	}
 
         emit_call_insn (gen_call_internal0 (operands[0], operands[1],
-                                            gen_rtx (REG, SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
+                                            gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
 
         DONE;
     }
@@ -3434,7 +3434,7 @@
   "!TARGET_ABICALLS && !TARGET_LONG_CALLS"
   {
     register rtx target = operands[0];
-    register rtx target2=gen_rtx (REG, Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
+    register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
     /*  fprintf(stderr,"insn\t call_internal1  \n");	*/
     if (GET_CODE (target) == SYMBOL_REF) {
         gen_rtx_CLOBBER(VOIDmode,target2);
@@ -3570,7 +3570,7 @@
             operands[0] = XEXP (XVECEXP (operands[0], 0, 0), 0);
 
         emit_call_insn (gen_call_value_internal0 (operands[0], operands[1], operands[2],
-		        gen_rtx (REG, SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
+		        gen_rtx_REG (SImode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)));
 
         DONE;
     }
@@ -3598,7 +3598,7 @@
   "!TARGET_ABICALLS && !TARGET_LONG_CALLS"
   {
     register rtx target = operands[1];
-    register rtx target2=gen_rtx (REG, Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
+    register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
 
     rtx operand0 = operands[0]; 
     rtx operand1 = operands[1];
@@ -3626,7 +3626,7 @@
   ""
   { 
     register rtx target = operands[1];
-    register rtx target2=gen_rtx (REG, Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
+    register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
 
     if (GET_CODE (target) == SYMBOL_REF){
 	gen_rtx_CLOBBER(VOIDmode,target2);

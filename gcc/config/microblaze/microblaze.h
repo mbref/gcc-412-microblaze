@@ -188,18 +188,6 @@ extern char *microblaze_no_clearbss;
 #define TARGET_MICROBLAZE_AS		TARGET_UNIX_ASM
 /*#define TARGET_MICROBLAZE_ASM         (target_flags & MASK_LCC_ASM)  */
 #define TARGET_MICROBLAZE_ASM   0
-#define TARGET_STACK_CHECK      (target_flags & MASK_STACK_CHECK)
-
-/* Debug Mode */
-#define TARGET_DEBUG_MODE               (target_flags & MASK_DEBUG)
-#define TARGET_DEBUG_A_MODE             (target_flags & MASK_DEBUG_A)
-#define TARGET_DEBUG_B_MODE             (target_flags & MASK_DEBUG_B)
-#define TARGET_DEBUG_D_MODE             (target_flags & MASK_DEBUG_D)
-#define TARGET_DEBUG_E_MODE             (target_flags & MASK_DEBUG_E)
-#define TARGET_DEBUG_F_MODE             (target_flags & MASK_DEBUG_F)
-#define TARGET_DEBUG_G_MODE             (target_flags & MASK_DEBUG_G)
-#define TARGET_DEBUG_H_MODE             (target_flags & MASK_DEBUG_H)
-#define TARGET_DEBUG_I_MODE             (target_flags & MASK_DEBUG_I)
 
 #define TARGET_GP_OPT            0       /* Vasanth: Cleanup */
 
@@ -217,12 +205,6 @@ extern char *microblaze_no_clearbss;
 /* OSF pic references to externs */
 #define TARGET_HALF_PIC		(target_flags & MASK_HALF_PIC)
 
-/* Use software floating point routines */
-#define TARGET_SOFT_FLOAT	(target_flags & MASK_SOFT_FLOAT)
-
-/* Use hardware FPU instructions */
-#define TARGET_HARD_FLOAT       (!TARGET_SOFT_FLOAT)
-
 /* always call through a register */
 #define TARGET_LONG_CALLS	(target_flags & MASK_LONG_CALLS)
 
@@ -236,18 +218,6 @@ extern char *microblaze_no_clearbss;
 
 /* Generate big endian code.  */
 #define TARGET_BIG_ENDIAN	(target_flags & MASK_BIG_ENDIAN)
-
-/* Use software multiply routines */
-#define TARGET_SOFT_MUL         (target_flags & MASK_SOFT_MUL)
-
-/* Use software divide routines */
-#define TARGET_SOFT_DIV         (target_flags & MASK_SOFT_DIV)
-
-/* Use hardware barrel shifter */
-#define TARGET_BARREL_SHIFT     (target_flags & MASK_BARREL_SHIFT)
-
-/* Use extended compare instructions */
-#define TARGET_PATTERN_COMPARE  (target_flags & MASK_PATTERN_COMPARE)
 
 #define TARGET_SMALL_DIVIDES    (target_flags & MASK_SMALL_DIVIDES)
 
@@ -747,7 +717,7 @@ while (0)
 
 /* The DWARF 2 CFA column which tracks the return address.  */
 #define DWARF_FRAME_RETURN_COLUMN (FP_REG_LAST + 1)
-#define INCOMING_RETURN_ADDR_RTX  gen_rtx (REG, VOIDmode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)
+#define INCOMING_RETURN_ADDR_RTX  gen_rtx_REG (VOIDmode, GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)
 
 
 /* /\* Overrides for the COFF debug format.  *\/ */
@@ -1664,7 +1634,7 @@ contain (16 bit zero-extended integers).
 
 #define RETURN_ADDR_RTX(count, frame)			\
   ((count == 0)						\
-   ? gen_rtx (MEM, Pmode, gen_rtx (REG, Pmode, RETURN_ADDRESS_POINTER_REGNUM))\
+   ? gen_rtx_MEM (Pmode, gen_rtx_REG (Pmode, RETURN_ADDRESS_POINTER_REGNUM))\
    : (rtx) 0)
 
 /* Structure to be filled in by compute_frame_size with register
@@ -1865,7 +1835,7 @@ extern struct microblaze_frame_info current_frame_info;
    PROMOTE_MODE does.  */
 
 #define LIBCALL_VALUE(MODE)						\
-  gen_rtx (REG,								\
+  gen_rtx_REG (								\
 	   ((GET_MODE_CLASS (MODE) != MODE_INT				\
 	     || GET_MODE_SIZE (MODE) >= 4)				\
 	    ? (MODE)							\
@@ -1993,11 +1963,11 @@ typedef struct microblaze_args {
 
 #define MUST_SAVE_REGISTER(regno) \
  (((regs_ever_live[regno] && !call_used_regs[regno])			\
-  || (regno == HARD_FRAME_POINTER_REGNUM && frame_pointer_needed)       \
-  || (((regs_ever_live[regno] || (regno == MB_ABI_MSR_SAVE_REG)) && interrupt_handler))   \
+  || ((regno == HARD_FRAME_POINTER_REGNUM) && frame_pointer_needed)       \
+  || (((regs_ever_live[regno] || ((regno == MB_ABI_MSR_SAVE_REG)) && interrupt_handler)))   \
   || (regs_ever_live[regno] && save_volatiles)                 \
-  || (regno == MB_ABI_ASM_TEMP_REGNUM && ( save_volatiles || interrupt_handler)) \
-  || (regno == MB_ABI_EXCEPTION_RETURN_ADDR_REGNUM && ( save_volatiles || interrupt_handler)) \
+  || ((regno == MB_ABI_ASM_TEMP_REGNUM) && ( save_volatiles || interrupt_handler)) \
+  || ((regno == MB_ABI_EXCEPTION_RETURN_ADDR_REGNUM) && ( save_volatiles || interrupt_handler)) \
   || ((regno == MB_ABI_SUB_RETURN_ADDR_REGNUM) && (!current_function_is_leaf))) \
   || ((regno >= 3 && regno <= 12) && (interrupt_handler || save_volatiles) && (!current_function_is_leaf))\
     && regno != 0)
@@ -2078,13 +2048,13 @@ typedef struct microblaze_args {
 #define INITIALIZE_TRAMPOLINE(ADDR, FUNC, CHAIN)			    \
 {									    \
   rtx addr = ADDR;							    \
-  emit_move_insn (gen_rtx (MEM, SImode, plus_constant (addr, 32)), FUNC);   \
-  emit_move_insn (gen_rtx (MEM, SImode, plus_constant (addr, 36)), CHAIN);  \
+  emit_move_insn (gen_rtx_MEM (SImode, plus_constant (addr, 32)), FUNC);   \
+  emit_move_insn (gen_rtx_MEM (SImode, plus_constant (addr, 36)), CHAIN);  \
 									    \
   /* Flush both caches.  We need to flush the data cache in case	    \
      the system has a write-back cache.  */				    \
   /* ??? Should check the return value for errors.  */			    \
-  emit_library_call (gen_rtx (SYMBOL_REF, Pmode, CACHE_FLUSH_FUNC),	    \
+  emit_library_call (gen_rtx_SYMBOL_REF (Pmode, CACHE_FLUSH_FUNC),	    \
 		     0, VOIDmode, 3, addr, Pmode,			    \
 		     GEN_INT (TRAMPOLINE_SIZE), TYPE_MODE (integer_type_node),\
 		     GEN_INT (3), TYPE_MODE (integer_type_node));	    \
@@ -2199,8 +2169,8 @@ typedef struct microblaze_args {
 #define GO_IF_MODE_DEPENDENT_ADDRESS(ADDR,LABEL) {}
 
 #if 1
-#define GO_PRINTF(x)	trace(x)
-#define GO_PRINTF2(x,y)	trace(x,y)
+#define GO_PRINTF(x)	trace(x, 0, 0)
+#define GO_PRINTF2(x,y)	trace(x,y, 0)
 #define GO_DEBUG_RTX(x) debug_rtx(x)
 #else
 #define GO_PRINTF(x)
@@ -2229,12 +2199,24 @@ typedef struct microblaze_args {
 
 #define LEGITIMATE_PIC_OPERAND_P(X)  (! pic_address_needs_scratch (X))
 
+/* Nonzero if the constant value X is a legitimate general operand.
+   It is given that X satisfies CONSTANT_P or is a CONST_DOUBLE.
+
+   At present, GAS doesn't understand li.[sd], so don't allow it
+   to be generated at present.  Also, the MICROBLAZE assembler does not
+   grok li.d Infinity.  */
+
+#define LEGITIMATE_CONSTANT_P(X)				\
+  (GET_CODE (X) != CONST_DOUBLE					\
+    || microblaze_const_double_ok (X, GET_MODE (X)))
+
 /* Try a machine-dependent way of reloading an illegitimate address
    operand.  If we find one, push the reload and jump to WIN.  This
    macro is used in only one place: `find_reloads_address' in reload.c.
 
    Implemented on microblaze by microblaze_legitimize_reload_address.  
    Note that (X) is evaluated twice; this is safe in current usage.  */ 
+
 #define LEGITIMIZE_ADDRESS(X,OLDX,MODE,WIN)			\
 {  rtx result = microblaze_legitimize_address (X, OLDX, MODE);	\
    if (result != NULL_RTX) {					\
@@ -3124,7 +3106,8 @@ if(TARGET_MICROBLAZE_ASM){                                                    \
 #define ASM_COMMENT_START " #"
 #endif
 
-
+#define VAR_SECTION(RTX) ((RTX)->var_section)
+#define SHIFT_TYPE(RTX) ((RTX)->shift_type)
 
 /* Macros for microblaze-tfile.c to encapsulate stabs in ECOFF, and for
    and microblaze-tdump.c to print them out.
