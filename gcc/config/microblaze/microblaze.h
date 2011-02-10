@@ -169,23 +169,18 @@ extern char *microblaze_no_clearbss;
 /* Run-time compilation parameters selecting different hardware subsets.  */
 
 /* Macros used in the machine description to test the flags.  */
-#define TARGET_UNIX_ASM		(!TARGET_GAS)
+#define TARGET_UNIX_ASM		0
 #define TARGET_MICROBLAZE_AS		TARGET_UNIX_ASM
 /*#define TARGET_MICROBLAZE_ASM         (target_flags & MASK_LCC_ASM)  */
 #define TARGET_MICROBLAZE_ASM   0
 
 #define TARGET_GP_OPT            0       /* Vasanth: Cleanup */
 
-/* call memcpy instead of inline code */
-#define TARGET_MEMCPY		(target_flags & MASK_MEMCPY)
-
 /* Optimize for Sdata/Sbss */
 #define TARGET_XLGP_OPT		(target_flags & MASK_XLGPOPT)
 
 /* This is true if we must enable the assembly language file switching
    code.  */
-/* [Changed to False for microblaze {04/17/02}]
-   #define TARGET_FILE_SWITCHING	(TARGET_GP_OPT && ! TARGET_GAS)*/
 #define TARGET_FILE_SWITCHING	0
 
 /* We must disable the function end stabs when doing the file switching trick,
@@ -604,10 +599,6 @@ while (0)
    that the MICROBLAZE assembler does not choke.  The microblaze-tfile program
    will correctly put the stab into the object file.  */
 
-/* #define ASM_STABS_OP	((TARGET_GAS) ? ".stabs" : " #.stabs") */
-/* #define ASM_STABN_OP	((TARGET_GAS) ? ".stabn" : " #.stabn") */
-/* #define ASM_STABD_OP	((TARGET_GAS) ? ".stabd" : " #.stabd") */
-
 #define ASM_STABS_OP	".stabs "  
 #define ASM_STABN_OP	".stabn " 
 #define ASM_STABD_OP	".stabd " 
@@ -859,10 +850,10 @@ while (0)
 #define BITS_BIG_ENDIAN 0
 
 /* Define this if most significant byte of a word is the lowest numbered. */
-#define BYTES_BIG_ENDIAN (TARGET_BIG_ENDIAN != 0)
+#define BYTES_BIG_ENDIAN 1
 
 /* Define this if most significant word of a multiword number is the lowest. */
-#define WORDS_BIG_ENDIAN (TARGET_BIG_ENDIAN != 0)
+#define WORDS_BIG_ENDIAN 1
 
 /* Define this to set the endianness to use in libgcc2.c, which can
    not depend on target_flags.  */
@@ -3252,9 +3243,6 @@ do {									 \
 #define ASM_WEAKEN_LABEL(FILE,NAME) ASM_OUTPUT_WEAK_ALIAS(FILE,NAME,0)
 #define ASM_OUTPUT_WEAK_ALIAS(FILE,NAME,VALUE)	\
   do {						\
-  if (TARGET_GAS)                               \
-  fputs ("\t.weak\t", FILE);		\
-  else                                          \
   fputs ("\t.weakext\t", FILE);		\
   assemble_name (FILE, NAME);			\
   if (VALUE)					\

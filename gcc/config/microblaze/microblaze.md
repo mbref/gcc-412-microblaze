@@ -3188,63 +3188,6 @@
   (set_attr "length"	"2")])
 
 
-(define_expand "builtin_setjmp_setup"
-  [(unspec [(match_operand 0 "register_operand" "r")] 20)]
-  "TARGET_ABICALLS"
-  {
-    if (Pmode == DImode)
-        emit_insn (gen_builtin_setjmp_setup_64 (operands[0]));
-    else
-        emit_insn (gen_builtin_setjmp_setup_32 (operands[0]));
-    DONE;
-  }
-)
-
-(define_expand "builtin_setjmp_setup_32"
-  [(set (mem:SI (plus:SI (match_operand:SI 0 "register_operand" "r")
-                         (const_int 12)))
-        (reg:SI 28))]
-  "TARGET_ABICALLS && ! (Pmode == DImode)"
-  ""
-)
-
-(define_expand "builtin_setjmp_setup_64"
-  [(set (mem:DI (plus:DI (match_operand:DI 0 "register_operand" "r")
-                         (const_int 24)))
-        (reg:DI 28))]
-  "TARGET_ABICALLS && Pmode == DImode"
-  ""
-)
-
-;; For o32/n32/n64, we need to arrange for longjmp to put the 
-;; target address in t9 so that we can use it for loading $gp.
-
-(define_expand "builtin_longjmp"
-  [(unspec_volatile [(match_operand 0 "register_operand" "r")] 3)]
-  "TARGET_ABICALLS"
-  {
-    /* The elements of the buffer are, in order:  */
-    int W = (Pmode == DImode ? 8 : 4);
-    rtx fp = gen_rtx_MEM (Pmode, operands[0]);
-    rtx lab = gen_rtx_MEM (Pmode, plus_constant (operands[0], 1*W));
-    rtx stack = gen_rtx_MEM (Pmode, plus_constant (operands[0], 2*W));
-    rtx gpv = gen_rtx_MEM (Pmode, plus_constant (operands[0], 3*W));
-    rtx pv = gen_rtx_REG (Pmode, 25);
-    rtx gp = gen_rtx_REG (Pmode, 28);
-    
-    /* This bit is the same as expand_builtin_longjmp.  */
-    emit_move_insn (hard_frame_pointer_rtx, fp);
-    emit_move_insn (pv, lab);
-    emit_stack_restore (SAVE_NONLOCAL, stack, NULL_RTX);
-    emit_move_insn (gp, gpv);
-    emit_insn (gen_rtx_USE (VOIDmode, hard_frame_pointer_rtx));
-    emit_insn (gen_rtx_USE (VOIDmode, stack_pointer_rtx));
-    emit_insn (gen_rtx_USE (VOIDmode, gp));
-    emit_indirect_jump (pv);
-    DONE;
-  }
-)
-
 ;;----------------------------------------------------------------
 ;; Function prologue/epilogue and stack allocation
 ;;----------------------------------------------------------------
@@ -3388,7 +3331,7 @@
     if (operands[0])		/* eliminate unused code warnings */
     {
         addr = XEXP (operands[0], 0);
-        if ((GET_CODE (addr) != REG && (!CONSTANT_ADDRESS_P (addr) || TARGET_LONG_CALLS))
+        if ((GET_CODE (addr) != REG && (!CONSTANT_ADDRESS_P (addr) ))
 	    || ! call_insn_operand (addr, VOIDmode))
             XEXP (operands[0], 0) = copy_to_mode_reg (Pmode, addr);
 
@@ -3431,7 +3374,7 @@
   [(call (mem (match_operand:SI 0 "call_insn_operand" "ri"))
 	 (match_operand:SI 1 "" "i"))
   (clobber (reg:SI R_SR))]
-  "!TARGET_ABICALLS && !TARGET_LONG_CALLS"
+  ""
   {
     register rtx target = operands[0];
     register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
@@ -3452,82 +3395,6 @@
   (set_attr "mode"	"none")
   (set_attr "length"	"4")])
 
-(define_insn "call_internal2"
-  [(call (mem (match_operand 0 "call_insn_operand" "ri"))
-	 (match_operand 1 "" "i"))
-  (clobber (match_operand:SI 2 "register_operand" "=d"))]
-  "TARGET_ABICALLS && !TARGET_LONG_CALLS"
-  {
-    register rtx target = operands[0];
-    /*  fprintf(stderr,"expand \t call_internal2  \n");*/
-    if (GET_CODE (target) == SYMBOL_REF)
-    {
-        if (GET_MODE (target) == SImode)
-            return "la\t%^,%0\;brlid\t%2,%^";
-        else
-            return "dla\t%^,%0\;MICROBLAZEjal\t%2,%^";
-    }
-    else if (GET_CODE (target) == CONST_INT)
-        return "li\t%^,%0\;MICROBLAZEjal\t%2,%^";
-    else if (REGNO (target) != PIC_FUNCTION_ADDR_REGNUM)
-        return "move\t%^,%0\;MICROBLAZEjal\t%2,%^";
-    else
-        return "MICROBLAZEjal\t%2,%0";
-  }
-  [(set_attr "type"	"call")
-  (set_attr "mode"	"none")
-  (set_attr "length"	"2")])
-
-(define_insn "call_internal3a"
-  [(call (mem:SI (match_operand:SI 0 "register_operand" "r"))
-	 (match_operand 1 "" "i"))
-  (clobber (match_operand:SI 2 "register_operand" "=d"))]
-  "!(Pmode == DImode) && !TARGET_ABICALLS && TARGET_LONG_CALLS"
-  "MICROBLAZEjal\t%2,%0"
-  [(set_attr "type"	"call")
-  (set_attr "mode"	"none")
-  (set_attr "length"	"1")])
-
-(define_insn "call_internal3b"
-  [(call (mem:DI (match_operand:DI 0 "register_operand" "r"))
-	 (match_operand 1 "" "i"))
-  (clobber (match_operand:SI 2 "register_operand" "=d"))]
-  "Pmode == DImode && !TARGET_ABICALLS && TARGET_LONG_CALLS"
-  "MICROBLAZEjal\t%2,%0"
-  [(set_attr "type"	"call")
-  (set_attr "mode"	"none")
-  (set_attr "length"	"1")])
-
-(define_insn "call_internal4a"
-  [(call (mem:SI (match_operand:SI 0 "register_operand" "r"))
-	 (match_operand 1 "" "i"))
-  (clobber (match_operand:SI 2 "register_operand" "=d"))]
-  "!(Pmode == DImode) && TARGET_ABICALLS && TARGET_LONG_CALLS"
-  {
-    if (REGNO (operands[0]) != PIC_FUNCTION_ADDR_REGNUM)
-        return "move\t%^,%0\;MICROBLAZEjal\t%2,%^";
-    else
-        return "MICROBLAZEjal\t%2,%0";
-  }
-  [(set_attr "type"	"call")
-  (set_attr "mode"	"none")
-  (set_attr "length"	"2")])
-
-(define_insn "call_internal4b"
-  [(call (mem:DI (match_operand:DI 0 "register_operand" "r"))
-	 (match_operand 1 "" "i"))
-  (clobber (match_operand:SI 2 "register_operand" "=d"))]
-  "Pmode == DImode && TARGET_ABICALLS && TARGET_LONG_CALLS"
-  {
-    if (REGNO (operands[0]) != PIC_FUNCTION_ADDR_REGNUM)
-        return "move\t%^,%0\;MICROBLAZEjal\t%2,%^";
-    else
-        return "MICROBLAZEjal\t%2,%0";
-  }
-  [(set_attr "type"	"call")
-  (set_attr "mode"	"none")
-  (set_attr "length"	"2")])
-
 ;; calls.c now passes a fourth argument, make saber happy
 
 (define_expand "call_value"
@@ -3542,7 +3409,7 @@
     if (operands[0])		/* eliminate unused code warning */
     {
         addr = XEXP (operands[1], 0);
-        if ((GET_CODE (addr) != REG && (!CONSTANT_ADDRESS_P (addr) || TARGET_LONG_CALLS))
+        if ((GET_CODE (addr) != REG && (!CONSTANT_ADDRESS_P (addr) ))
             || ! call_insn_operand (addr, VOIDmode))
             XEXP (operands[1], 0) = copy_to_mode_reg (Pmode, addr);
 
@@ -3595,7 +3462,7 @@
                   (call (mem (match_operand 1 "call_insn_operand" "ri"))
                         (match_operand 2 "" "i")))
              (clobber (match_operand:SI 3 "register_operand" "=d"))])]
-  "!TARGET_ABICALLS && !TARGET_LONG_CALLS"
+  ""
   {
     register rtx target = operands[1];
     register rtx target2=gen_rtx_REG (Pmode,GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM);
@@ -3649,7 +3516,7 @@
         (call (mem (match_operand 1 "call_insn_operand" "ri"))
               (match_operand 2 "" "i")))
   (clobber (match_operand:SI 3 "register_operand" "=d"))]
-  "!TARGET_ABICALLS && !TARGET_LONG_CALLS"
+  ""
   {
     register rtx target = operands[1];
 
@@ -3662,34 +3529,6 @@
    (set_attr "mode"	"none")
    (set_attr "length"	"4")]
 )
-
-(define_insn "call_value_internal2"
-  [(set (match_operand 0 "register_operand" "=df")
-        (call (mem (match_operand 1 "call_insn_operand" "ri"))
-              (match_operand 2 "" "i")))
-  (clobber (match_operand:SI 3 "register_operand" "=d"))]
-  "TARGET_ABICALLS && !TARGET_LONG_CALLS"
-  {
-    register rtx target = operands[1];
-
-    if (GET_CODE (target) == SYMBOL_REF)
-    {
-        if (GET_MODE (target) == SImode)
-            return "la\t%^,%1\;MICROBLAZEjal\t%3,%^";
-        else
-            return "dla\t%^,%1\;MICROBLAZEjal\t%3,%^";
-    }
-    else if (GET_CODE (target) == CONST_INT)
-        return "li\t%^,%1\;MICROBLAZEjal\t%3,%^";
-    else if (REGNO (target) != PIC_FUNCTION_ADDR_REGNUM)
-        return "move\t%^,%1\;MICROBLAZEjal\t%3,%^";
-    else
-        return "MICROBLAZEjal\t%3,%1";
-  }
-  [(set_attr "type"	"call")
-  (set_attr "mode"	"none")
-  (set_attr "length"	"2")])
-
 
 
 ;; Call subroutine returning any type.

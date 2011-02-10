@@ -2214,10 +2214,7 @@ expand_block_move (rtx operands[])
   dest_reg = copy_addr_to_reg (XEXP (orig_dest, 0));
   src_reg  = copy_addr_to_reg (XEXP (orig_src, 0));
 
-  if (TARGET_MEMCPY) {
-    block_move_call (dest_reg, src_reg, bytes_rtx);
-  }
-  else if (constp && bytes <= 2 * MAX_MOVE_BYTES
+  if (constp && bytes <= 2 * MAX_MOVE_BYTES
            && align == UNITS_PER_WORD) {
     move_by_pieces (orig_dest, orig_src, bytes, align, 0);                  
   }	
@@ -2989,19 +2986,7 @@ override_options (void)
   if (TARGET_HALF_PIC)
     HALF_PIC_INIT ();
 
-  /* -fpic (-KPIC) is the default when TARGET_ABICALLS is defined.  We need
-     to set flag_pic so that the LEGITIMATE_PIC_OPERAND_P macro will work.  */
-  /* ??? -non_shared turns off pic code generation, but this is not
-     implemented.  */
-  if (TARGET_ABICALLS)
-  {
-    microblaze_abicalls = MICROBLAZE_ABICALLS_YES;
-    flag_pic = 1;
-    if (microblaze_section_threshold > 0)
-      warning (0, "-G is incompatible with PIC code which is the default");
-  }
-  else
-    microblaze_abicalls = MICROBLAZE_ABICALLS_NO;
+  microblaze_abicalls = MICROBLAZE_ABICALLS_NO;
   /* printf("microblaze_abi %d microblaze_abicalls %d\n",
      microblaze_abi, microblaze_abicalls); */
   /* -membedded-pic is a form of PIC code suitable for embedded
@@ -3014,8 +2999,6 @@ override_options (void)
   if (TARGET_EMBEDDED_PIC)
   {
     flag_pic = 1;
-    if (TARGET_ABICALLS)
-      warning (0, "-membedded-pic and -mabicalls are incompatible");
 
     if (g_switch_set)
       warning (0, "-G and -membedded-pic are incompatible");
@@ -3630,22 +3613,10 @@ microblaze_output_filename (
   else if (name != current_function_file
            && strcmp (name, current_function_file) != 0)
   {
-    if (inside_function && !TARGET_GAS)
-    {
-      if (!file_in_function_warning)
-      {
-        file_in_function_warning = 1;
-        ignore_line_number = 1;
-        warning (0, "MICROBLAZE ECOFF format does not allow changing filenames within functions with #line");
-      }
-    }
-    else
-    {
-      SET_FILE_NUMBER ();
-      current_function_file = name;
-      fprintf (stream, "\t.file\t%d", num_source_filenames);
-      output_quoted_string (stream, name);
-    }
+    SET_FILE_NUMBER ();
+    current_function_file = name;
+    fprintf (stream, "\t.file\t%d", num_source_filenames);
+    output_quoted_string (stream, name);
   }
 }
 
@@ -3734,10 +3705,6 @@ microblaze_asm_file_start (void)
 #ifndef ABICALLS_ASM_OP
 #define ABICALLS_ASM_OP ".abicalls"
 #endif
-  if (TARGET_ABICALLS)
-    /* ??? but do not want this (or want pic0) if -non-shared? */
-    fprintf (asm_out_file, "\t%s\n", ABICALLS_ASM_OP);
-    
     
   /* This code exists so that we can put all externs before all symbol
      references.  This is necessary for the MICROBLAZE assembler's global pointer
@@ -4180,8 +4147,7 @@ save_restore_insns (int prologue)
         insn = emit_move_insn (mem_rtx, reg_rtx);
         RTX_FRAME_RELATED_P (insn) = 1;
       }
-      else if (!TARGET_ABICALLS 
-               || regno != (PIC_OFFSET_TABLE_REGNUM - GP_REG_FIRST))
+      else if (regno != (PIC_OFFSET_TABLE_REGNUM - GP_REG_FIRST))
       {
         insn = emit_move_insn (reg_rtx, mem_rtx);
         REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_MAYBE_DEAD, const0_rtx, NULL_RTX);
@@ -4404,9 +4370,6 @@ microblaze_expand_prologue (void)
     rtx ptr = stack_pointer_rtx;
 
     /* If we are doing svr4-abi, sp has already been decremented by fsiz. */
-    if (TARGET_ABICALLS)
-      offset += fsiz;
-
     for (; regno <= GP_ARG_LAST; regno++)
     {
       if (offset != 0)
@@ -4423,14 +4386,11 @@ microblaze_expand_prologue (void)
   {
     rtx fsiz_rtx = GEN_INT (fsiz);
 
-    if (!TARGET_ABICALLS )
-    {
-      rtx insn = NULL;
-      insn = emit_insn (gen_subsi3 (stack_pointer_rtx, stack_pointer_rtx,
-                                    fsiz_rtx));
-      if (insn)
-        RTX_FRAME_RELATED_P (insn) = 1;
-    }
+    rtx insn = NULL;
+    insn = emit_insn (gen_subsi3 (stack_pointer_rtx, stack_pointer_rtx,
+                                  fsiz_rtx));
+    if (insn)
+      RTX_FRAME_RELATED_P (insn) = 1;
 
     /* Handle SUB_RETURN_ADDR_REGNUM specially at first */
     if (!current_function_is_leaf || interrupt_handler) {
@@ -4583,9 +4543,6 @@ microblaze_function_epilogue (
   /* Restore the output file if optimizing the GP (optimizing the GP causes
      the text to be diverted to a tempfile, so that data decls come before
      references to the data).  */
-
-  if (TARGET_GP_OPT && ! TARGET_GAS)
-    asm_out_file = asm_out_data_file;
 }
 
 /* Expand the epilogue into a bunch of separate insns.  */
@@ -5097,18 +5054,6 @@ microblaze_unique_section (
        get their address.  */
     sec = 0;
   }
-  else if (TARGET_EMBEDDED_DATA)
-  {
-    /* For embedded applications, always put an object in read-only data
-       if possible, in order to reduce RAM usage.  */
-
-    if (decl_readonly_section (decl, reloc))
-      sec = 1;
-    else if (size > 0 && size <= microblaze_section_threshold)
-      sec = 3;
-    else
-      sec = 2;
-  }
   else
   {
     /* For hosted applications, always put an object in small data if
@@ -5145,16 +5090,7 @@ microblaze_encode_section_info (
   int new_decl_p ATTRIBUTE_UNUSED)
 {
    
-  if (TARGET_EMBEDDED_DATA						
-      && (TREE_CODE (DECL) == VAR_DECL				
-          && TREE_READONLY (DECL) && !TREE_SIDE_EFFECTS (DECL))	
-      && (!DECL_INITIAL (DECL)					
-          || TREE_CONSTANT (DECL_INITIAL (DECL))))		
-  {									
-    SYMBOL_REF_FLAG (XEXP (rtl, 0)) = 0;		
-  }									
-									
-  else if (TARGET_EMBEDDED_PIC)					
+  if (TARGET_EMBEDDED_PIC)					
   {									
     if (TREE_CODE (DECL) == VAR_DECL)				
       SYMBOL_REF_FLAG (XEXP (rtl, 0)) = 1;		

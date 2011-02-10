@@ -51,10 +51,6 @@ mxl-stack-check
 Target Mask(STACK_CHECK)
 Check Stack at runtime
 
-mmemcpy
-Target Joined Mask(MEMCPY)
-Don't optimize block moves
-
 mxl-gp-opt
 Target Mask(XLGPOPT)
 Use GP relative sdata/sbss sections[for xlnx]
@@ -105,33 +101,10 @@ mno-clearbss
 Target RejectNegative
 Clear the BSS to zero and place zero initialized in BSS
 
-mgas
-Target Mask(GAS)
-Use gas instead of MicroBlaze as
-
-mabicalls
-Target Mask(ABICALLS)
-Emit .abicalls/.cprestore/.cpload
-
 mhalf-pic
 Target Mask(HALF_PIC)
 Emit OSF-style pic refs to externs
 
-mlong-calls
-Target Mask(LONG_CALLS)
-Always call through register
-
 membedded-pic
 Target Mask(EMBEDDED_PIC)
 -membedded-pic is a form of PIC code suitable for embedded systems
-
-membedded-data
-Target Mask(EMBEDDED_DATA)
-Reduce RAM usage, not fast code
-
-mbig-endian
-Target RejectNegative Mask(BIG_ENDIAN)
-Generate big endian code
-
-
-
