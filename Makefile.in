@@ -29271,7 +29271,7 @@ configure-target-newlib: $(TARGET_SUBDIR)/newlib/multilib.out
 	libsrcdir="$$s/newlib"; \
 	rm -f no-such-file || : ; \
 	CONFIG_SITE=no-such-file $(SHELL) $${libsrcdir}/configure \
-	  $(TARGET_CONFIGARGS) $${srcdiroption}  \
+	  $(TARGET_CONFIGARGS) --disable-multilib $${srcdiroption}  \
 	  || exit 1
 @endif target-newlib
 
