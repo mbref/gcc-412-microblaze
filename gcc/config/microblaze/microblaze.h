@@ -162,14 +162,10 @@ extern char *microblaze_no_clearbss;
 /* Optimize for Sdata/Sbss */
 #define TARGET_XLGP_OPT		(target_flags & MASK_XLGPOPT)
 
-/* This is true if we must enable the assembly language file switching
-   code.  */
-#define TARGET_FILE_SWITCHING	0
-
 /* We must disable the function end stabs when doing the file switching trick,
    because the Lscope stabs end up in the wrong place, making it impossible
    to debug the resulting code.  */
-#define NO_DBX_FUNCTION_END TARGET_FILE_SWITCHING
+#define NO_DBX_FUNCTION_END 0
 
 #if 0
 /* Added by Sid for mb-objdump problem */
@@ -2771,14 +2767,6 @@ do {									\
 do {									\
   ASM_OUTPUT_ALIGNED_LOCAL (FILE, NAME, SIZE, ALIGN);			\
 } while (0)
-
-/* This says how to output an external.  It would be possible not to
-   output anything and let undefined symbol become external. However
-   the assembler uses length information on externals to allocate in
-   data/sdata bss/sbss, thereby saving exec time.  */
-
-#define ASM_OUTPUT_EXTERNAL(STREAM,DECL,NAME) \
-  microblaze_output_external(STREAM,DECL,NAME)
 
 /* This is how to declare a function name.  The actual work of
    emitting the label is moved to function_prologue, so that we can
