@@ -3300,7 +3300,7 @@ void FN ()                                                                      
 
 /* Don't set the target flags, this is done by the linker script */
 #undef LIB_SPEC
-#define LIB_SPEC "%{!pg:%{!nostdlib:%{!Zxl-no-libxil:-( -lxil -lc -lm -) }}} %{pg:%{!nostdlib:-( -lxilprofile -lxil -lc -lm -) }} %{Zxl-no-libxil: %{!nostdlib: -( -lc -lm -) }}"        /* Xilinx: We need to group -lm as well, since some Newlib math functions reference __errno! */
+#define LIB_SPEC "%{!pg:%{!nostdlib:%{!Zxl-no-libxil:-start-group -lxil -lc -lm -end-group }}} %{pg:%{!nostdlib:-start-group -lxilprofile -lxil -lc -lm -end-group }} %{Zxl-no-libxil: %{!nostdlib: -start-group -lc -lm -end-group }}"        /* Xilinx: We need to group -lm as well, since some Newlib math functions reference __errno! */
 
 #undef  ENDFILE_SPEC
 #define ENDFILE_SPEC "crtend.o%s crtn.o%s"
