@@ -180,7 +180,9 @@ namespace std
   using ::wcscoll;
   using ::wcscpy;
   using ::wcscspn;
+#if _GLIBCXX_HAVE_WCSFTIME
   using ::wcsftime;
+#endif
   using ::wcslen;
   using ::wcsncat;
   using ::wcsncmp;
