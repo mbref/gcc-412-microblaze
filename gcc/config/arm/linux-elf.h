@@ -28,19 +28,33 @@
 #undef  TARGET_VERSION
 #define TARGET_VERSION  fputs (" (ARM GNU/Linux with ELF)", stderr);
 
+/*
+ * 'config.gcc' defines TARGET_BIG_ENDIAN_DEFAULT as 1 for arm*b-*
+ * (big endian) configurations.
+ */
+#if TARGET_BIG_ENDIAN_DEFAULT
+#define TARGET_ENDIAN_DEFAULT MASK_BIG_END
+#define TARGET_ENDIAN_OPTION "mbig-endian"
+#define TARGET_LINKER_EMULATION "armelfb_linux"
+#else
+#define TARGET_ENDIAN_DEFAULT 0
+#define TARGET_ENDIAN_OPTION "mlittle-endian"
+#define TARGET_LINKER_EMULATION "armelf_linux"
+#endif
+
 #undef  TARGET_DEFAULT_FLOAT_ABI
 #define TARGET_DEFAULT_FLOAT_ABI ARM_FLOAT_ABI_HARD
 
 #undef  TARGET_DEFAULT
-#define TARGET_DEFAULT (0)
+#define TARGET_DEFAULT (TARGET_ENDIAN_DEFAULT)
 
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm6
 
-#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_linux -p"
+#define SUBTARGET_EXTRA_LINK_SPEC " -m " TARGET_LINKER_EMULATION " -p"
 
 #undef  MULTILIB_DEFAULTS
 #define MULTILIB_DEFAULTS \
-	{ "marm", "mlittle-endian", "mhard-float", "mno-thumb-interwork" }
+	{ "marm", TARGET_ENDIAN_OPTION, "mhard-float", "mno-thumb-interwork" }
 
 /* Now we define the strings used to build the spec file.  */
 #undef  LIB_SPEC
@@ -65,7 +79,7 @@
    %{rdynamic:-export-dynamic} \
    %{!dynamic-linker:-dynamic-linker " LINUX_TARGET_INTERPRETER "} \
    -X \
-   %{mbig-endian:-EB}" \
+   %{mbig-endian:-EB} %{mlittle-endian:-EL}" \
    SUBTARGET_EXTRA_LINK_SPEC
 
 #undef  LINK_SPEC

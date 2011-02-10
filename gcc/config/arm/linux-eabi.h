@@ -20,6 +20,17 @@
    the Free Software Foundation, 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301, USA.  */
 
+/*
+ * 'config.gcc' defines TARGET_BIG_ENDIAN_DEFAULT as 1 for arm*b-*
+ * (big endian) configurations.
+ */
+#undef TARGET_LINKER_EMULATION
+#if TARGET_BIG_ENDIAN_DEFAULT
+#define TARGET_LINKER_EMULATION "armelfb_linux_eabi"
+#else
+#define TARGET_LINKER_EMULATION "armelf_linux_eabi"
+#endif
+
 /* On EABI GNU/Linux, we want both the BPABI builtins and the
    GNU/Linux builtins.  */
 #undef TARGET_OS_CPP_BUILTINS
@@ -48,7 +59,7 @@
 #define SUBTARGET_CPU_DEFAULT TARGET_CPU_arm10tdmi
 
 #undef SUBTARGET_EXTRA_LINK_SPEC
-#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_linux_eabi"
+#define SUBTARGET_EXTRA_LINK_SPEC " -m " TARGET_LINKER_EMULATION
 
 /* Use ld-linux.so.3 so that it will be possible to run "classic"
    GNU/Linux binaries on an EABI system.  */
