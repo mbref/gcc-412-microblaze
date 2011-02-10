@@ -13,7 +13,14 @@ LIB2FUNCS_EXTRA = $(srcdir)/config/microblaze/divsi3_table.c \
 # in the applications because the gcc crt files are found by the linker before
 # the glibc crt files
  
-EXTRA_MULTILIB_PARTS = crtbegin$(objext) crtend$(objext)
+EXTRA_MULTILIB_PARTS = crtbegin$(objext) crtend$(objext) #crtbeginS$(objext) crtendS$(objext) crti$(objext) crtn$(objext)
+
+# Build multiple copies of ?crt{i,n}.o, one for each target switch.
+#$(T)crti$(objext): $(srcdir)/config/microblaze/crti.s
+#	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -c $(srcdir)/config/microblaze/crti.s -o $(T)crti$(objext)
+
+#$(T)crtn$(objext): $(srcdir)/config/microblaze/crtn.s
+#	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -c $(srcdir)/config/microblaze/crtn.s -o $(T)crtn$(objext)
 
 # We want fine grained libraries, so use the new code
 # to build the floating point emulation libraries.
@@ -31,6 +38,14 @@ dp-bit.c: $(srcdir)/config/fp-bit.c
 MULTILIB_OPTIONS = mxl-barrel-shift mno-xl-soft-mul mxl-multiply-high
 MULTILIB_DIRNAMES = bs m mh
 MULTILIB_EXCEPTIONS = *mxl-barrel-shift/mxl-multiply-high mxl-multiply-high
+
+
+#MULTILIB_OPTIONS = mxl-barrel-shift mno-xl-soft-mul mxl-multiply-high #mlittle-endian
+#MULTILIB_DIRNAMES = bs m mh #le
+#MULTILIB_EXCEPTIONS = *mxl-barrel-shift/mxl-multiply-high 
+#MULTILIB_EXCEPTIONS += mxl-multiply-high 
+#MULTILIB_EXCEPTIONS += *mxl-barrel-shift/mxl-multiply-high/mlittle-endian
+#MULTILIB_EXCEPTIONS += mxl-multiply-high/mlittle-endian
 
 ## Unfortunately, this does not work. We have to find a way to do this. 
 ## Otherwise, -xl-blazeit will cause only the base libgcc to be picked up always.

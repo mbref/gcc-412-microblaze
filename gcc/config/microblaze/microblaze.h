@@ -203,14 +203,13 @@ extern char *microblaze_no_clearbss;
 
 
 /* Default target_flags if no switches are specified  */
-#define TARGET_DEFAULT      (MASK_SOFT_MUL | MASK_SOFT_DIV | MASK_SOFT_FLOAT)
+#ifndef TARGET_DEFAULT_ENDIAN
+#define TARGET_DEFAULT_ENDIAN 0
+#endif
+#define TARGET_DEFAULT      (TARGET_ENDIAN_DEFAULT | MASK_SOFT_MUL | MASK_SOFT_DIV | MASK_SOFT_FLOAT)
 
 #ifndef TARGET_CPU_DEFAULT
 #define TARGET_CPU_DEFAULT 0
-#endif
-
-#ifndef TARGET_ENDIAN_DEFAULT
-#define TARGET_ENDIAN_DEFAULT MASK_BIG_ENDIAN
 #endif
 
 /* What is the default setting for -mcpu= . We set it to v4.00.a even though 
@@ -312,7 +311,16 @@ while (0)
   do								\
     {								\
         builtin_define ("microblaze");                          \
-        builtin_define ("_BIG_ENDIAN");                         \
+        if (TARGET_LITTLE_ENDIAN)                               \
+          {                                                     \
+              builtin_define ("_LITTLE_ENDIAN");                \
+              builtin_define ("__MICROBLAZEEL__");              \
+          }                                                     \
+        else                                                    \
+          {                                                     \
+              builtin_define ("_BIG_ENDIAN");                   \
+              builtin_define ("__MICROBLAZEEB__");              \
+          }                                                     \
         builtin_define ("__MICROBLAZE__");                      \
                                                                 \
         builtin_assert ("system=unix");                         \
@@ -400,7 +408,9 @@ while (0)
 #define ASM_SPEC "\
 %{microblaze1} \
 %(target_asm_spec) \
-%(subtarget_asm_spec)"
+%(subtarget_asm_spec) \
+%{mlittle-endian:-EL; \
+  mbig-endian:-EB}"
 
 /* old asm spec */
 /*#define ASM_SPEC "\
@@ -424,9 +434,11 @@ while (0)
 /* Extra switches sometimes passed to the linker.  */
 /* ??? The bestGnum will never be passed to the linker, because the gcc driver
    will interpret it as a -b option.  */
-
-#define LINK_SPEC "%{shared:-shared} -N -relax %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800} \
-  %{!mxl-gp-opt: -G 0} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
+#define LINK_SPEC "%{shared:-shared} \
+%{mbig-endian:-EB} \
+%{mlittle-endian:-EL} \
+-N -relax %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800}          \
+%{mxl-gp-opt:%{G*}} %{!mxl-gp-opt: -G 0} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
 
 /* Specs for the compiler proper */
 
@@ -813,14 +825,21 @@ while (0)
 #define BITS_BIG_ENDIAN 0
 
 /* Define this if most significant byte of a word is the lowest numbered. */
-#define BYTES_BIG_ENDIAN 1
+#define BYTES_BIG_ENDIAN (TARGET_LITTLE_ENDIAN == 0)
 
 /* Define this if most significant word of a multiword number is the lowest. */
-#define WORDS_BIG_ENDIAN 1
+#define WORDS_BIG_ENDIAN (BYTES_BIG_ENDIAN)
+
+/* Temporary.  */
+//#define FLOAT_WORDS_BIG_ENDIAN 1
 
 /* Define this to set the endianness to use in libgcc2.c, which can
    not depend on target_flags.  */
+#if defined(_BIG_ENDIAN)
 #define LIBGCC2_WORDS_BIG_ENDIAN 1
+#else
+#define LIBGCC2_WORDS_BIG_ENDIAN 0
+#endif
 
 /* Number of bits in an addressable storage unit */
 #define BITS_PER_UNIT           8
@@ -3295,4 +3314,9 @@ void FN ()                                                                      
                         : %(startfile_default)       \
 } \
 %(startfile_crtinit)"
+
+#if 0
+#undef  MULTILIB_DEFAULTS
+#define MULTILIB_DEFAULTS { "mbig-endian" }
+#endif
 

@@ -1159,13 +1159,13 @@
   ""
   {
         if (which_alternative == 0)
-                return "addik\t%D0,%1,0\;addik\t%0,r0,0";
+                return "addik\t%L0,%1,0\;addik\t%M0,r0,0";
         else {
                 char *temp2, *temp_final;
                 char *temp = microblaze_move_1word(operands,insn,TRUE);
 
                 operands[2] = gen_rtx_SUBREG(SImode, operands[0],4);
-                temp2 = "\n\taddk\t%D0,r0,%0\;addk\t%0,r0,r0";
+                temp2 = "\n\taddk\t%L0,r0,%0\;addk\t%M0,r0,r0";
 
                 temp_final = (char*) xmalloc(strlen(temp) + strlen(temp2) + 1);
                 strcpy(temp_final,temp);
@@ -1305,7 +1305,7 @@
         /*     fprintf(stderr,"Sign Extending DI \n");*/
         /*      operands[2] = gen_rtx(REG,REGNO(operands[0]) + 1);*/
         operands[2] = gen_rtx_SUBREG(SImode,operands[0],4);
-	temp2 = "%_\;add\t%D0,r0,%0\;add\t%0,%D0,%D0\;addc\t%0,r0,r0\;beqi\t%0,%-signextend\;addi\t%0,r0,0xffffffff\n%-signextend:";
+	temp2 = "%_\;add\t%L0,r0,%0\;add\t%M0,%L0,%L0\;addc\t%M0,r0,r0\;beqi\t%M0,%-signextend\;addi\t%M0,r0,0xffffffff\n%-signextend:";
   	temp_final = (char*) xmalloc(strlen(temp) + strlen(temp2) + 1);
 	strcpy(temp_final,temp);
 	strcat(temp_final,temp2);
@@ -1346,7 +1346,7 @@
         /*      operands[2] = gen_rtx(REG,REGNO(operands[0]) + 1);*/
         operands[2] = gen_rtx_SUBREG(SImode,operands[0],4);
 
-	temp2 = "%_\n\tsext8\t%0,%0\;add\t%D0,r0,%0\;add\t%0,%D0,%D0\;addc\t%0,r0,r0\;beqi\t%0,%-signextend\;addi\t%0,r0,0xffffffff\n%-signextend:";
+	temp2 = "%_\n\tsext8\t%0,%0\;add\t%L0,r0,%0\;add\t%M0,%L0,%L0\;addc\t%M0,r0,r0\;beqi\t%M0,%-signextend\;addi\t%M0,r0,0xffffffff\n%-signextend:";
   	temp_final = (char*) xmalloc(strlen(temp) + strlen(temp2) + 1);
 	strcpy(temp_final,temp);
 	strcat(temp_final,temp2);
@@ -1386,7 +1386,7 @@
         /*      operands[2] = gen_rtx(REG,REGNO(operands[0]) + 1);*/
         operands[2] = gen_rtx_SUBREG(SImode,operands[0],4);
 
-	temp2 = "%_\n\tsext16\t%0,%0\;add\t%D0,r0,%0\;add\t%0,%D0,%D0\;addc\t%0,r0,r0\;beqi\t%0,%-signextend\;addi\t%0,r0,0xffffffff\n%-signextend:";
+	temp2 = "%_\n\tsext16\t%0,%0\;add\t%L0,r0,%0\;add\t%M0,%D0,%D0\;addc\t%M0,r0,r0\;beqi\t%M0,%-signextend\;addi\t%M0,r0,0xffffffff\n%-signextend:";
   	temp_final = (char*) xmalloc(strlen(temp) + strlen(temp2) + 1);
 	strcpy(temp_final,temp);
 	strcat(temp_final,temp2);
@@ -2961,14 +2961,14 @@
         switch (GET_CODE (operands[0]))
         {
 
-            case GT: return  "cmp\tr18,%z1,%z2\;blti%?\tr18,%3";
+            case GT: return  "cmp\tr18,%z1,%z2\;blti%?\tr18,%3 #GT";
             case LE: return  "cmp\tr18,%z1,%z2\;bgei%?\tr18,%3";
             case GE: return  "cmp\tr18,%z2,%z1\;bgei%?\tr18,%3";
-            case LT: return  "cmp\tr18,%z2,%z1\;blti%?\tr18,%3";
-            case GTU:return  "cmpu\tr18,%z1,%z2\;blti%?\tr18,%3";
+            case LT: return  "cmp\tr18,%z2,%z1\;blti%?\tr18,%3 #LT";
+            case GTU:return  "cmpu\tr18,%z1,%z2\;blti%?\tr18,%3 #GTU";
             case LEU:return  "cmpu\tr18,%z1,%z2\;bgei%?\tr18,%3";
             case GEU:return  "cmpu\tr18,%z2,%z1\;bgei%?\tr18,%3";
-            case LTU:return  "cmpu\tr18,%z2,%z1\;blti%?\tr18,%3";
+            case LTU:return  "cmpu\tr18,%z2,%z1\;blti%?\tr18,%3 #LTU";
             default:
                 break;
         }

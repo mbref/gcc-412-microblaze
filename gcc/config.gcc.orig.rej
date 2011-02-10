@@ -1,0 +1,44 @@
+--- tmp/gcc-4.1.2/gcc/config.gcc.orig	2010-08-05 09:37:13.605625306 +0200
++++ gcc/config.gcc.orig	2010-08-06 20:15:48.213000787 +0200
+@@ -1455,18 +1455,40 @@
+ 	;;
+ microblaze*-linux*)
+ 	tm_file="microblaze/microblaze.h dbxelf.h linux.h microblaze/linux.h"
++	echo "tgt=$target" >/tmp/edde
++	case $target in
++	microblaze-*)
++		tm_defines="${tm_defines} TARGET_BIG_ENDIAN_DEFAULT=88"
++		;;
++	esac
+ 	tmake_file="t-slibgcc-elf-ver t-slibgcc-nolc-override t-linux microblaze/t-microblaze"
+        extra_parts="crtbegin.o crtbeginS.o crtend.o crtendS.o crtbeginT.o"
+ 	use_fixproto=no
+ 	;;
+ microblaze*-uclinux*)
++	case $target in
++	microblazele-*)
++		tm_defines="${tm_defines} TARGET_BIG_ENDIAN_DEFAULT=0"
++		;;
++	microblaze-*)
++		tm_defines="${tm_defines} TARGET_BIG_ENDIAN_DEFAULT=1"
++		;;
++	esac
+ 	tm_file="microblaze/microblaze.h dbxelf.h microblaze/uclinux.h"
+ 	tmake_file="microblaze/t-microblaze"
+        extra_parts="crtbegin.o crtbeginS.o crtend.o crtendS.o crtbeginT.o"
+ 	use_fixproto=no
+ 	;;
+ microblaze*-*-*)
+-        tm_file="dbxelf.h microblaze/microblaze.h"
++      	case $target in
++	microblazele-*)
++		tm_defines="${tm_defines} TARGET_BIG_ENDIAN_DEFAULT=0"
++		;;
++	microblaze-*)
++		tm_defines="${tm_defines} TARGET_BIG_ENDIAN_DEFAULT=1"
++		;;
++	esac
++  tm_file="dbxelf.h microblaze/microblaze.h"
+         tmake_file=microblaze/t-microblaze
+         ;;
+ mips-sgi-irix[56]*)
