@@ -53,7 +53,11 @@
 /* Use ld-linux.so.3 so that it will be possible to run "classic"
    GNU/Linux binaries on an EABI system.  */
 #undef LINUX_TARGET_INTERPRETER
+#ifdef USE_UCLIBC
+#define LINUX_TARGET_INTERPRETER "/lib/ld-uClibc.so.0"
+#else
 #define LINUX_TARGET_INTERPRETER "/lib/ld-linux.so.3"
+#endif
 
 /* At this point, bpabi.h will have clobbered LINK_SPEC.  We want to
    use the GNU/Linux version, not the generic BPABI version.  */
