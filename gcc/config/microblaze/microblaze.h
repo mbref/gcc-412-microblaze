@@ -438,15 +438,7 @@ while (0)
 /* ??? The bestGnum will never be passed to the linker, because the gcc driver
    will interpret it as a -b option.  */
 
-#ifndef LINK_SPEC
-/*#define LINK_SPEC "\
-  %{G*} %{EB} %{EL} \
-  %{bestGnum} %{shared} %{non_shared} \
-  %(linker_endian_spec) -relax -N \
-  %{intrusive-debug:-defsym _TEXT_START_ADDR=0x400}"
-*/
-#define LINK_SPEC "-relax -N %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800}"
-#endif	/* LINK_SPEC defined */
+#define LINK_SPEC "-relax -N %{Zxl-mode-xmdstub:-defsym _TEXT_START_ADDR=0x800} %{!Wl,-T*: %{!T*: -T xilinx.ld%s}}"
 
 /* Specs for the compiler proper */
 
