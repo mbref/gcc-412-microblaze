@@ -1448,6 +1448,18 @@ mcore-*-pe*)
 	tmake_file=mcore/t-mcore-pe
 	use_fixproto=yes
 	;;
+microblaze*-linux*)
+	tm_file="microblaze/microblaze.h dbxelf.h linux.h microblaze/linux.h"
+	tmake_file="t-slibgcc-elf-ver t-slibgcc-nolc-override t-linux microblaze/t-microblaze"
+       extra_parts="crtbegin.o crtbeginS.o crtend.o crtendS.o crtbeginT.o"
+	use_fixproto=no
+	;;
+microblaze*-uclinux*)
+	tm_file="microblaze/microblaze.h dbxelf.h microblaze/uclinux.h"
+	tmake_file="microblaze/t-microblaze"
+       extra_parts="crtbegin.o crtbeginS.o crtend.o crtendS.o crtbeginT.o"
+	use_fixproto=no
+	;;
 microblaze*-*-*)
         tm_file="dbxelf.h microblaze/microblaze.h"
         tmake_file=microblaze/t-microblaze
