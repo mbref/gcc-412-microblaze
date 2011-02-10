@@ -1,0 +1,106 @@
+; Options for the MicroBlaze port of the compiler
+;
+; Copyright (C) 2006 Free Software Foundation, Inc.
+;
+; This file is part of GCC.
+;
+; GCC is free software; you can redistribute it and/or modify it under
+; the terms of the GNU General Public License as published by the Free
+; Software Foundation; either version 2, or (at your option) any later
+; version.
+;
+; GCC is distributed in the hope that it will be useful, but WITHOUT
+; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+; License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with GCC; see the file COPYING.  If not, write to the Free
+; Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
+; 02110-1301, USA.
+
+mxl-soft-mul
+Target Mask(SOFT_MUL)
+Use the soft multiply emulation
+
+mxl-soft-div
+Target Mask(MASK_SOFT_DIV)
+Use the soft divide emulation
+
+mxl-barrel-shift
+Target Mask(MASK_BARREL_SHIFT)
+Use the hardware barrel shifter instead of emulation
+
+msoft-float
+Target Report RejectNegative Mask(SOFT_FLOAT)
+Prevent the use of all hardware floating-point instructions
+
+mhard-float
+Target Report RejectNegative InverseMask(SOFT_FLOAT, HARD_FLOAT)
+Allow the use of hardware floating-point instructions
+
+mxl-pattern-compare
+Target Joined Mask(MASK_PATTERN_COMPARE)
+Use pattern compare instructions
+
+msmall-divides
+Target Joined 
+Use table lookup optimization for small signed integer divisions
+
+mxl-stack-check
+Target Joined Mask(MASK_STACK_CHECK)
+Check Stack at runtime
+
+mmemcpy
+Target Joined 
+Don't optimize block moves
+
+mxl-gp-opt
+Target Joined Mask(MASK_XLGPOPT)
+Use GP relative sdata/sbss sections[for xlnx]
+
+mstats
+Target Joined 
+Output compiler statistics
+
+mdebug
+Target Var(TARGET_DEBUG_MODE) Undocumented
+
+mdebuga
+Target Var(TARGET_DEBUG_A_MODE) Undocumented
+
+mdebugb
+Target Var(TARGET_DEBUG_B_MODE) Undocumented
+
+mdebugc
+Target Var(TARGET_DEBUG_C_MODE) Undocumented
+
+mdebugd
+Target Var(TARGET_DEBUG_D_MODE) Undocumented
+
+mdebuge
+Target Var(TARGET_DEBUG_E_MODE) Undocumented
+
+mdebugf
+Target Var(TARGET_DEBUG_F_MODE) Undocumented
+
+mdebugg
+Target Var(TARGET_DEBUG_G_MODE) Undocumented
+
+mdebugh
+Target Var(TARGET_DEBUG_H_MODE) Undocumented
+
+mdebugi
+Target Var(TARGET_DEBUG_I_MODE) Undocumented
+
+mcpu=
+Target RejectNegative Joined Var(microblaze_select_cpu)
+-mcpu=PROCESSOR		Use features of and schedule code for given CPU
+
+mtune=
+Target RejectNegative Joined Var(microblaze_select_tune)
+-mtune=PROCESSOR	Schedule code for given CPU
+
+mclearbss
+Target 
+Clear the BSS to zero and place zero initialized in BSS

@@ -555,121 +555,12 @@ static int microblaze_save_volatiles (tree);
 
 struct gcc_target targetm = (struct gcc_target)TARGET_INITIALIZER;
 
-/* Return truth value of whether OP can be used as an operands in arithmetic */
-
-int
-arith_operand (rtx op, enum machine_mode mode)
-{
-  if (GET_CODE (op) == CONST_INT)
-    return 1;
-
-  return register_operand (op, mode);
-}
-
 /* Return truth value of whether OP is a integer which fits in 16 bits  */
 
 int
 small_int (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
 {
   return (GET_CODE (op) == CONST_INT && SMALL_INT (op));
-}
-
-
-/* Return truth value of whether OP is a register or the constant 0 */
-
-int
-reg_or_0_operand (rtx op, enum machine_mode mode)
-{
-  switch (GET_CODE (op))
-  {
-    case CONST_INT:
-      return INTVAL (op) == 0;
-
-    case CONST_DOUBLE:
-      return op == CONST0_RTX (mode);
-
-    case REG:
-    case SUBREG:
-      return register_operand (op, mode);
-
-    default:
-      break;
-  }
-
-  return 0;
-}
-
-/* Return truth value if a CONST_DOUBLE is ok to be a legitimate constant.  */
-
-int
-microblaze_const_double_ok (rtx op, enum machine_mode mode)
-{
-  REAL_VALUE_TYPE d;
-
-  if (GET_CODE (op) != CONST_DOUBLE)
-    return 0;
-
-  if (mode == VOIDmode)
-    return 1;
-
-  if (mode != SFmode && mode != DFmode)
-    return 0;
-
-  if (op == CONST0_RTX (mode))
-    return 1;
-
-  REAL_VALUE_FROM_CONST_DOUBLE (d, op);
-
-  if (REAL_VALUE_ISNAN (d))
-    return FALSE;
-
-  if (REAL_VALUE_NEGATIVE (d))
-    d = REAL_VALUE_NEGATE (d);
-
-  if (mode == DFmode)
-  {
-    if (REAL_VALUES_LESS (d, dfhigh)
-        && REAL_VALUES_LESS (dflow, d))
-      return 1;
-  }
-  else
-  {
-    if (REAL_VALUES_LESS (d, sfhigh)
-        && REAL_VALUES_LESS (sflow, d))
-      return 1;
-  }
-
-  return 0;
-}
-
-/* Accept the floating point constant 1 in the appropriate mode.  */
-
-int
-const_float_1_operand (rtx op, enum machine_mode mode)
-{
-  REAL_VALUE_TYPE d;
-  static REAL_VALUE_TYPE onedf;
-  static REAL_VALUE_TYPE onesf;
-  static int one_initialized;
-
-  if (GET_CODE (op) != CONST_DOUBLE
-      || mode != GET_MODE (op)
-      || (mode != DFmode && mode != SFmode))
-    return 0;
-
-  REAL_VALUE_FROM_CONST_DOUBLE (d, op);
-
-  if (! one_initialized)
-  {
-    onedf = REAL_VALUE_ATOF ("1.0", DFmode);
-    onesf = REAL_VALUE_ATOF ("1.0", SFmode);
-    one_initialized = 1;
-  }
-
-  if (mode == DFmode)
-    return REAL_VALUES_EQUAL (d, onedf);
-  else
-    return REAL_VALUES_EQUAL (d, onesf);
 }
 
 /* Return truth value if a memory operand fits in a single instruction
@@ -726,85 +617,6 @@ simple_memory_operand (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
   return 0;
 }
 
-/* This predicate is for testing if the operand will definitely need an imm instruction */
-
-int
-imm_required_operand (rtx op, enum machine_mode mode)
-{
-
-  rtx addr,plus0,plus1;
-
-  if (GET_CODE (op) != MEM
-      || ! memory_operand (op, mode))
-  {
-    /* During reload, we accept a pseudo register if it has an
-       appropriate memory address.  If we don't do this, we will
-       wind up reloading into a register, and then reloading that
-       register from memory, when we could just reload directly from
-       memory.  */
-    if (reload_in_progress
-        && GET_CODE (op) == REG
-        && REGNO (op) >= FIRST_PSEUDO_REGISTER
-        && reg_renumber[REGNO (op)] < 0
-        && reg_equiv_mem[REGNO (op)] != 0
-        && double_memory_operand (reg_equiv_mem[REGNO (op)], mode))
-      return 1;
-    return 0;
-  }
-
-  /* Make sure that 4 added to the address is a valid memory address.
-     This essentially just checks for overflow in an added constant.  */
-
-  addr = XEXP (op, 0);
-
-  switch (GET_CODE (addr))
-  {
-    case REG:
-      return 0;
-
-    case CONST_INT:
-      if (!SMALL_INT(addr))
-        return 1;
-      else
-        return 0;
-
-      /*    case CONST_INT:
-            return SMALL_INT (op);
-      */
-    case PLUS:
-      plus0 = XEXP (addr, 0);
-      plus1 = XEXP (addr, 1);
-      if (GET_CODE (plus0) == REG
-          && GET_CODE (plus1) == CONST_INT && SMALL_INT (plus1)) {
-        return 0;
-      }
-      
-
-      else if (GET_CODE (plus1) == REG  && GET_CODE (plus0) == CONST_INT){
-        return 0;
-      }
-      
-
-      else
-        return 1;
-
-    case SYMBOL_REF:
-      return 1;
-
-    default:
-      break;
-  }
-
-  if (CONSTANT_ADDRESS_P (addr))
-    return 1;
-
-  return memory_address_p ((GET_MODE_CLASS (mode) == MODE_INT
-                            ? SImode
-                            : SFmode),
-                           plus_constant(addr, 4)); 
-
-}
-
 /* Return nonzero for a memory address that can be used to load or store
    a doubleword.  */
 
@@ -845,145 +657,6 @@ double_memory_operand (rtx op, enum machine_mode mode)
                            plus_constant (addr, 4));  
 }
 
-
-/* Return nonzero if the code of this rtx pattern is EQ or NE.  */
-
-int
-equality_op (rtx op, enum machine_mode mode)
-{
-  if (mode != GET_MODE (op))
-    return 0;
-
-  return GET_CODE (op) == EQ || GET_CODE (op) == NE;
-}
-
-int
-lessthan_op (rtx op, enum machine_mode mode)
-{
-  if (mode != GET_MODE (op))
-    return 0;
-
-  return GET_CODE (op) == LT || GET_CODE (op) == LTU;
-}
-
-/* Return nonzero if the code is a relational operations (EQ, LE, etc.) */
-
-int
-cmp_op (rtx op, enum machine_mode mode)
-{
-  if (mode != GET_MODE (op))
-    return 0;
-
-  return GET_RTX_CLASS (GET_CODE (op)) == '<';
-}
-
-/* Returns nonzero, if the operator is unsigned compare op */
-int
-unsigned_cmp_op (rtx op, enum machine_mode mode)
-{
-  if (mode != GET_MODE (op))
-    return 0;
-
-  return ( GET_RTX_CLASS (GET_CODE (op)) == '<'   && 
-           (GET_CODE(op) == GTU ||
-            GET_CODE(op) == LTU ||
-            GET_CODE(op) == LEU ||
-            GET_CODE(op) == GEU));
-}
-
-/* Return nonzero , if the operator is signed compare op */
-/* the check for class might not be necessary */
-int
-signed_cmp_op (rtx op, enum machine_mode mode)
-{
-  if (mode != GET_MODE (op))
-    return 0;
-
-  return ( GET_RTX_CLASS (GET_CODE (op)) == '<'   && 
-           (GET_CODE(op) == GT ||
-            GET_CODE(op) == LT ||
-            GET_CODE(op) == LE ||
-            GET_CODE(op) == GE ||
-            GET_CODE(op) == EQ ||
-            GET_CODE(op) == NE ));
-}
-
-/* Return nonzero if the operand is either the PC or a label_ref.  */
-
-int
-pc_or_label_operand (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
-{
-  if (op == pc_rtx)
-    return 1;
-
-  if (GET_CODE (op) == LABEL_REF)
-    return 1;
-
-  if ((GET_CODE (op) == SYMBOL_REF) && !(strcmp ((XSTR (op, 0)), "_stack_overflow_exit")))
-    return 1;
-
-  return 0;
-}
-
-/* Test for a valid operand for a call instruction.
-   Don't allow the arg pointer register or virtual regs
-   since they may change into reg + const, which the patterns
-   can't handle yet.  */
-
-int
-call_insn_operand (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
-{
-  return (CONSTANT_ADDRESS_P (op)
-          || (GET_CODE (op) == REG && op != arg_pointer_rtx
-              && ! (REGNO (op) >= FIRST_PSEUDO_REGISTER
-                    && REGNO (op) <= LAST_VIRTUAL_REGISTER)));
-}
-
-/* Return nonzero if OPERAND is valid as a source operand for a move
-   instruction.  */
-
-int
-move_operand (rtx op, enum machine_mode mode)
-{
-  /* Accept any general operand after reload has started; doing so
-     avoids losing if reload does an in-place replacement of a register
-     with a SYMBOL_REF or CONST.  */
-
-  /* FIXME: What is this? Some temporary hack. 
-     Check if we are losing out on optimal code */
-  /* GCC 3.4.1 
-   * Special check added 
-   * Some of the aggressive operations are causing problems 
-   */
-  if ( GET_CODE(op) == PLUS )
-    if (!(( GET_CODE(XEXP (op,0)) == REG ) ^ (GET_CODE (XEXP (op,1)) == REG)))
-      return 0;
-    
-  return (general_operand (op, mode));
-}
-
-
-/* Return nonzero if OPERAND is valid as a source operand for movdi.
-   This accepts not only general_operand, but also sign extended
-   constants and registers.  We need to accept sign extended constants
-   in case a sign extended register which is used in an expression,
-   and is equivalent to a constant, is spilled.  */
-
-int
-movdi_operand (rtx op, enum machine_mode mode)
-{
-  return (general_operand (op, mode));
-}
-
-int 
-immediate32_operand (rtx op, enum machine_mode mode ATTRIBUTE_UNUSED)
-{
-  int temp = INTVAL(op) & 0xffffffff;
-  if ((GET_CODE (op) == CONST_INT) && 
-      (temp == INTVAL(op)))
-    return 1;
-  return 0;
-}
 
 /* This hook is called many times during insn scheduling. If the hook 
    returns nonzero, the automaton based pipeline description is used 
@@ -3865,10 +3538,9 @@ microblaze_output_filename (stream, name)
     first_time = 0;
     SET_FILE_NUMBER ();
     current_function_file = name;
-    ASM_OUTPUT_FILENAME (stream, num_source_filenames, name);
-    /* This tells microblaze-tfile that stabs will follow.  */
-    if (!TARGET_GAS && write_symbols == DBX_DEBUG)
-      fprintf (stream, "\t#@stabs\n");
+    fprintf (stream, "\t.file\t%d ", num_source_filenames);
+    output_quoted_string (stream, name);
+    putc ('\n', stream);
   }
 
   else if (write_symbols == DBX_DEBUG)
@@ -4460,7 +4132,7 @@ microblaze_function_prologue (file, size)
 
 #ifdef SDB_DEBUGGING_INFO
   if (debug_info_level != DINFO_LEVEL_TERSE && write_symbols == SDB_DEBUG)
-    ASM_OUTPUT_SOURCE_LINE (file, DECL_SOURCE_LINE (current_function_decl));
+    microblaze_output_lineno (file, DECL_SOURCE_LINE (current_function_decl));
 #endif
 #endif
   inside_function = 1;
@@ -5012,16 +4684,6 @@ machine_dependent_reorg ()
 {
   return;
 
-}
-
-/* Return nonzero if X is a SIGN or ZERO extend operator.  */
-int
-extend_operator (x, mode)
-  rtx x;
-  enum machine_mode mode ATTRIBUTE_UNUSED;
-{
-  enum rtx_code code = GET_CODE (x);
-  return code == SIGN_EXTEND || code == ZERO_EXTEND;
 }
 
 /* Accept any operator that can be used to shift the high half of the

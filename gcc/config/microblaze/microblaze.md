@@ -32,6 +32,7 @@
 ;; 
 ;;----------------------------------------------------------------------------------------------------------------------------------------------------
 
+(include "predicates.md")
 
 ;;----------------------------------------------------
 ;; Constants
@@ -472,7 +473,7 @@
 (define_insn "adddi3_internal2"
   [(set (match_operand:DI 0 "register_operand" "=d")
 	(plus:DI (match_operand:DI 1 "register_operand" "d")
-		 (match_operand:SI 2 "immediate32_operand" "i")))]
+		 (match_operand:SI 2 "large_int" "i")))]
   ""
   { 
         if (INTVAL (operands[2]) > 0)

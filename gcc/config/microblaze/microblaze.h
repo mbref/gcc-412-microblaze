@@ -314,70 +314,6 @@ extern char *microblaze_no_clearbss;
   { "-xl-no-libxil", "-Zxl-no-libxil" }
 
 
-/* Macro to define tables used to set the flags.
-   This is a list in braces of pairs in braces,
-   each pair being { "NAME", VALUE }
-   where VALUE is the bits to set or minus the bits to clear.
-   An empty string NAME is used to identify the default VALUE.  */
-
-#define TARGET_SWITCHES							\
-{									\
-  {"xl-soft-mul",	  MASK_SOFT_MUL,				\
-     "Use the soft multiply emulation"},				\
-  {"no-xl-soft-mul",	  -MASK_SOFT_MUL,				\
-     "Use the hardware multiplier instead of emulation"},		\
-  {"xl-soft-div",	  MASK_SOFT_DIV,				\
-     "Use the soft divide emulation"},                                  \
-  {"no-xl-soft-div",	  -MASK_SOFT_DIV,				\
-     "Use the hardware divider instead of emulation"},	         	\
-  {"xl-barrel-shift",	  MASK_BARREL_SHIFT,				\
-     "Use the hardware barrel shifter instead of emulation"},           \
-  {"soft-float",	  MASK_SOFT_FLOAT,				\
-     "Use software floating point"},					\
-  {"hard-float",          -MASK_SOFT_FLOAT,                             \
-     "Don't use software floating point"},                              \
-  {"xl-pattern-compare",  MASK_PATTERN_COMPARE,                         \
-     "Use pattern compare instructions"},                               \
-  {"small-divides",	  MASK_SMALL_DIVIDES,				\
-     "Use table lookup optimization for small signed integer divisions"},\
-  {"xl-stack-check",	  MASK_STACK_CHECK,				\
-     "Check Stack at runtime"},						\
-  {"memcpy",		  MASK_MEMCPY,					\
-     "Don't optimize block moves"},					\
-  {"no-memcpy",		 -MASK_MEMCPY,					\
-     "Optimize block moves"},						\
-  {"xl-gp-opt",		 MASK_XLGPOPT,					\
-     "Use GP relative sdata/sbss sections[for xlnx]"},			\
-  {"no-xl-gp-opt",	 -MASK_XLGPOPT,			 	        \
-     "Use GP relative sdata/sbss sections[for xlnx]"},			\
-  {"stats",		  MASK_STATS,					\
-     "Output compiler statistics"},					\
-  {"no-stats",		 -MASK_STATS,					\
-     "Don't output compiler statistics"},				\
-  {"debug",		  MASK_DEBUG,					\
-     NULL},								\
-  {"debuga",		  MASK_DEBUG_A,					\
-     NULL},								\
-  {"debugb",		  MASK_DEBUG_B,					\
-     NULL},								\
-  {"debugd",		  MASK_DEBUG_D,					\
-     NULL},								\
-  {"debuge",		  MASK_DEBUG_E,					\
-     NULL},								\
-  {"debugf",		  MASK_DEBUG_F,					\
-     NULL},								\
-  {"debugg",		  MASK_DEBUG_G,					\
-     NULL},								\
-  {"debugh",		  MASK_DEBUG_H,					\
-     NULL},								\
-  {"debugi",		  MASK_DEBUG_I,					\
-     NULL},								\
-  {"",			  (TARGET_DEFAULT				\
-			   | TARGET_CPU_DEFAULT				\
-			   | TARGET_ENDIAN_DEFAULT),			\
-     NULL},								\
-}     
-
 /* Default target_flags if no switches are specified  */
 #define TARGET_DEFAULT      (0)
 
@@ -415,32 +351,6 @@ extern char *microblaze_no_clearbss;
 #endif
 #endif
 
-/* This macro is similar to `TARGET_SWITCHES' but defines names of
-   command options that have values.  Its definition is an
-   initializer with a subgrouping for each command option.
-
-   Each subgrouping contains a string constant, that defines the
-   fixed part of the option name, and the address of a variable. 
-   The variable, type `char *', is set to the variable part of the
-   given option if the fixed part matches.  The actual option name
-   is made by appending `-m' to the specified name.
-
-   Here is an example which defines `-mshort-data-NUMBER'.  If the
-   given option is `-mshort-data-512', the variable `m88k_short_data'
-   will be set to the string `"512"'.
-
-   extern char *m88k_short_data;
-   #define TARGET_OPTIONS { { "short-data-", &m88k_short_data } }  */
-
-#define TARGET_OPTIONS                                                                  \
-{                                                                                       \
-  {"cpu=",  &microblaze_select.cpu,                                                     \
-     N_("Use features of and schedule code for given CPU"), NULL},                      \
-  {"tune=", &microblaze_select.tune,                                                    \
-     N_("Schedule code for given CPU"), NULL},                                          \
-  {"no-clearbss", &microblaze_no_clearbss,                                              \
-     N_("Do not clear the BSS to zero and do not place zero initialized in BSS"), "yes"}\
-}
 
 /* Macros to decide whether certain features are available or not,
    depending on the instruction set architecture level.  */
@@ -1093,7 +1003,6 @@ while (0)
    target machine.  If you don't define this, the default is one
    word.  */
 #define LONG_TYPE_SIZE          32
-#define MAX_LONG_TYPE_SIZE      64
 
 /* A C expression for the size in bits of the type `long long' on the
    target machine.  If you don't define this, the default is two
@@ -1206,14 +1115,6 @@ while (0)
 	|| TREE_CODE (TYPE) == UNION_TYPE				\
 	|| TREE_CODE (TYPE) == RECORD_TYPE)) ? BITS_PER_WORD : (ALIGN))
 
-
-/* Define this macro if an argument declared as `char' or `short' in a
-   prototype should actually be passed as an `int'.  In addition to
-   avoiding errors in certain cases of mismatch, it also makes for
-   better code on certain machines. */
-
-#define PROMOTE_PROTOTYPES 1
-
 /* Define if operations between registers always perform the operation
    on the full register even if a narrower mode is specified.  */
 #define WORD_REGISTER_OPERATIONS
@@ -1239,15 +1140,6 @@ while (0)
   if (GET_MODE_CLASS (MODE) == MODE_INT		\
       && GET_MODE_SIZE (MODE) < 4)		\
     (MODE) = SImode;
-
-/* Define this if function arguments should also be promoted using the above
-   procedure.  */
-
-#define PROMOTE_FUNCTION_ARGS
-
-/* Likewise, if the function return value is promoted.  */
-
-#define PROMOTE_FUNCTION_RETURN
 
 /* Standard register usage.  */
 
@@ -1435,11 +1327,6 @@ extern char microblaze_hard_regno_mode_ok[][FIRST_PSEUDO_REGISTER];
 /* Define this macro if it is as good or better to call a constant
    function address than to call an address kept in a register.  */
 #define NO_FUNCTION_CSE                 1
-
-/* Define this macro if it is as good or better for a function to
-   call itself with an explicit address than to call an address
-   kept in a register.  */
-#define NO_RECURSIVE_FUNCTION_CSE       1
 
 /* The register number of the register used to address a table of
    static data addresses in memory.  In some cases this register is
@@ -1648,6 +1535,16 @@ contain (16 bit zero-extended integers).
 
 #define SMALL_INT(X) ((unsigned HOST_WIDE_INT) (INTVAL (X) + 0x8000) < 0x10000)
 #define SMALL_INT_UNSIGNED(X) ((unsigned HOST_WIDE_INT) (INTVAL (X)) < 0x10000)
+#define LARGE_INT(X) (((unsigned HOST_WIDE_INT) (INTVAL (X) + 0xffffffff)) \
+	== ((unsigned HOST_WIDE_INT) (INTVAL (X) + 0xffffffff)))
+/* Test for a valid operand for a call instruction.
+   Don't allow the arg pointer register or virtual regs
+   since they may change into reg + const, which the patterns
+   can't handle yet.  */
+#define CALL_INSN_OP(X) (CONSTANT_ADDRESS_P (op)	\
+                         || (GET_CODE (op) == REG && op != arg_pointer_rtx	\
+                             && ! (REGNO (op) >= FIRST_PSEUDO_REGISTER	\
+                             && REGNO (op) <= LAST_VIRTUAL_REGISTER)))
 
 /* Deifinition of K changed for MicroBlaze specific code */
 
@@ -2102,13 +1999,6 @@ typedef struct microblaze_args {
 #define FUNCTION_ARG(CUM, MODE, TYPE, NAMED) \
   function_arg( &CUM, MODE, TYPE, NAMED)
 
-/* For an arg passed partly in registers and partly in memory,
-   this is the number of registers used.
-   For args passed entirely in registers or entirely in memory, zero. */
-
-#define FUNCTION_ARG_PARTIAL_NREGS(CUM, MODE, TYPE, NAMED) \
-  function_arg_partial_nregs (&CUM, MODE, TYPE, NAMED)
-
 /* Tell prologue and epilogue if register REGNO should be saved / restored.  */
 
 /* Added the link register for functions which are not leaf */
@@ -2358,17 +2248,6 @@ typedef struct microblaze_args {
 
 #define LEGITIMATE_PIC_OPERAND_P(X)  (! pic_address_needs_scratch (X))
 
-/* Nonzero if the constant value X is a legitimate general operand.
-   It is given that X satisfies CONSTANT_P or is a CONST_DOUBLE.
-
-   At present, GAS doesn't understand li.[sd], so don't allow it
-   to be generated at present.  Also, the MICROBLAZE assembler does not
-   grok li.d Infinity.  */
-
-#define LEGITIMATE_CONSTANT_P(X)				\
-  (GET_CODE (X) != CONST_DOUBLE					\
-    || microblaze_const_double_ok (X, GET_MODE (X)))
-
 /* Try a machine-dependent way of reloading an illegitimate address
    operand.  If we find one, push the reload and jump to WIN.  This
    macro is used in only one place: `find_reloads_address' in reload.c.
@@ -2519,10 +2398,6 @@ typedef struct microblaze_args {
 
 #define FUNCTION_MODE   (SImode)
 
-/* Define TARGET_MEM_FUNCTIONS if we want to use calls to memcpy and
-   memset, instead of the BSD functions bcopy and bzero.  */
-#define TARGET_MEM_FUNCTIONS
-
 /* GCC 3.4.1
  * Removed CONST_COSTS. Find a way to get behavior back ???
  */
@@ -2636,54 +2511,6 @@ condition code register.  */
 #define ADJUST_COST(INSN,LINK,DEP_INSN,COST)				\
   if (REG_NOTE_KIND (LINK) != 0)					\
     (COST) = 0; /* Anti or output dependence.  */
-
-/* Optionally define this if you have added predicates to
-   `MACHINE.c'.  This macro is called within an initializer of an
-   array of structures.  The first field in the structure is the
-   name of a predicate and the second field is an array of rtl
-   codes.  For each predicate, list all rtl codes that can be in
-   expressions matched by the predicate.  The list should have a
-   trailing comma.  Here is an example of two entries in the list
-   for a typical RISC machine:
-
-   #define PREDICATE_CODES \
-   {"gen_reg_rtx_operand", {SUBREG, REG}},  \
-   {"reg_or_short_cint_operand", {SUBREG, REG, CONST_INT}},
-
-   Defining this macro does not affect the generated code (however,
-   incorrect definitions that omit an rtl code that may be matched
-   by the predicate can cause the compiler to malfunction). 
-   Instead, it allows the table built by `genrecog' to be more
-   compact and efficient, thus speeding up the compiler.  The most
-   important predicates to include in the list specified by this
-   macro are thoses used in the most insn patterns.  */
-
-#define PREDICATE_CODES							\
-  {"arith_operand",		{ REG, CONST_INT, SUBREG }},		\
-  {"reg_or_0_operand",		{ REG, CONST_INT, CONST_DOUBLE, SUBREG }}, \
-  {"small_int",			{ CONST_INT }},				\
-  {"immediate32_operand",	{ CONST_INT }},				\
-  {"microblaze_const_double_ok",	{ CONST_DOUBLE }},		\
-  {"const_float_1_operand",	{ CONST_DOUBLE }},			\
-  {"simple_memory_operand",	{ MEM, SUBREG }},			\
-  {"imm_required_operand",	{ MEM, SUBREG }},			\
-  {"equality_op",		{ EQ, NE }},				\
-  {"lessthan_op",		{ LT, LTU }},				\
-  {"cmp_op",			{ EQ, NE, GT, GE, GTU, GEU, LT, LE,	\
-				  LTU, LEU }},				\
-  {"signed_cmp_op",             { EQ, NE, GT, GE, LT, LE }},            \
-  {"unsigned_cmp_op",           { GTU, GEU, LTU, LEU }},                \
-  {"pc_or_label_operand",	{ PC, LABEL_REF }},			\
-  {"call_insn_operand",		{ CONST_INT, CONST, SYMBOL_REF, REG}},	\
-  {"move_operand", 		{ CONST_INT, CONST_DOUBLE, CONST,	\
-				  SYMBOL_REF, LABEL_REF, SUBREG,	\
-				  REG, MEM}},				\
-  {"movdi_operand",		{ CONST_INT, CONST_DOUBLE, CONST,	\
-				  SYMBOL_REF, LABEL_REF, SUBREG, REG,	\
-				  MEM, SIGN_EXTEND }},			\
-  {"extend_operator",           { SIGN_EXTEND, ZERO_EXTEND }},          \
-  {"highpart_shift_operator",   { ASHIFTRT, LSHIFTRT, ROTATERT, ROTATE }}, 
-
 
 
 /* If defined, a C statement to be executed just prior to the
@@ -2902,18 +2729,6 @@ condition code register.  */
   { "s13",	30 + GP_REG_FIRST }					\
 }
 
-/* Define results of standard character escape sequences.  */
-/* Removed since defined in Default */
-/*
-  #define TARGET_BELL	007
-  #define TARGET_BS	010
-  #define TARGET_TAB	011
-  #define TARGET_NEWLINE	012
-  #define TARGET_VT	013
-  #define TARGET_FF	014
-  #define TARGET_CR	015
-*/
-
 /* A C compound statement to output to stdio stream STREAM the
    assembler syntax for an instruction operand X.  X is an RTL
    expression.
@@ -3004,15 +2819,6 @@ while (0)
 #define ASM_OUTPUT_SOURCE_FILENAME(STREAM, NAME)			\
   microblaze_output_filename (STREAM, NAME)
 
-#define ASM_OUTPUT_FILENAME(STREAM, NUM_SOURCE_FILENAMES, NAME) \
-do								\
-  {								\
-    fprintf (STREAM, "\t.file\t%d ", NUM_SOURCE_FILENAMES);	\
-    output_quoted_string (STREAM, NAME);			\
-    fputs ("\n", STREAM);					\
-  }								\
-while (0)
-
 /* This is how to output a note the debugger telling it the line number
    to which the following sequence of instructions corresponds.
    Silicon graphics puts a label after each .loc.  */
@@ -3020,9 +2826,6 @@ while (0)
 #ifndef LABEL_AFTER_LOC
 #define LABEL_AFTER_LOC(STREAM)
 #endif
-
-#define ASM_OUTPUT_SOURCE_LINE(STREAM, LINE, COUNTER)		\
-  microblaze_output_lineno (STREAM, LINE)
 
 /* The MICROBLAZE implementation uses some labels for its own purpose.  The
    following lists what labels are created, and are all formed by the
@@ -3246,32 +3049,32 @@ if(TARGET_MICROBLAZE_ASM){                                                    \
 	  cur_pos += 2;							\
 	  break;							\
 									\
-	case TARGET_NEWLINE:						\
+	case '\n':						\
 	  fputs ("\\n", (STREAM));					\
 	  if (i+1 < len							\
 	      && (((c = string[i+1]) >= '\040' && c <= '~')		\
-		  || c == TARGET_TAB))					\
+		  || c == '\t'))					\
 	    cur_pos = 32767;		/* break right here */		\
 	  else								\
 	    cur_pos += 2;						\
 	  break;							\
 									\
-	case TARGET_TAB:						\
+	case '\t':						\
 	  fputs ("\\t", (STREAM));					\
 	  cur_pos += 2;							\
 	  break;							\
 									\
-	case TARGET_FF:							\
+	case '\f':							\
 	  fputs ("\\f", (STREAM));					\
 	  cur_pos += 2;							\
 	  break;							\
 									\
-	case TARGET_BS:							\
+	case '\b':							\
 	  fputs ("\\b", (STREAM));					\
 	  cur_pos += 2;							\
 	  break;							\
 									\
-	case TARGET_CR:							\
+	case '\r':							\
 	  fputs ("\\r", (STREAM));					\
 	  cur_pos += 2;							\
 	  break;							\
@@ -3442,22 +3245,6 @@ do{ \
 #define GLOBAL_ASM_OP "\t.globl\t"
 
 #define MAX_OFILE_ALIGNMENT (32768*8)
-
-/* A C statement to output something to the assembler file to switch to section
-   NAME for object DECL which is either a FUNCTION_DECL, a VAR_DECL or
-   NULL_TREE.  Some target formats do not support arbitrary sections.  Do not
-   define this macro in such cases.  */
-
-#define ASM_OUTPUT_SECTION_NAME(F, DECL, NAME, RELOC) \
-do {								\
-  extern FILE *asm_out_text_file;				\
-  if ((DECL) && TREE_CODE (DECL) == FUNCTION_DECL)		\
-    fprintf (asm_out_text_file, "\t.section %s,\"ax\",@progbits\n", (NAME)); \
-  else if ((DECL) && DECL_READONLY_SECTION (DECL, RELOC))	\
-    fprintf (F, "\t.section %s,\"a\",@progbits\n", (NAME));	\
-  else								\
-    fprintf (F, "\t.section %s,\"aw\",@progbits\n", (NAME));	\
-} while (0)
 
 /* The following macro defines the format used to output the second
    operand of the .type assembler directive.  Different svr4 assemblers
