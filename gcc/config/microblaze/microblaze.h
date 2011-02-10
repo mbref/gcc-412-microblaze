@@ -76,15 +76,6 @@ enum microblaze_abicalls_type {
 /* Recast the abicalls class to be the abicalls attribute.  */
 #define microblaze_abicalls_attr ((enum attr_abicalls)microblaze_abicalls)
 
-/* Which type of block move to do (whether or not the last store is
-   split out so it can fill a branch delay slot).  */
-
-enum block_move_type {
-    BLOCK_MOVE_NORMAL,			/* generate complete block move */
-    BLOCK_MOVE_NOT_LAST,			/* generate all but last store */
-    BLOCK_MOVE_LAST			/* generate just the last store */
-};
-
 #define MICROBLAZE_MASK_NO_UNSAFE_DELAY         0x00000001
 
 extern char microblaze_reg_names[][8];          /* register names (a0 vs. $4). */
@@ -999,8 +990,8 @@ while (0)
    
    We handle QImode arrays specially. It enables string operations
    to be optimally handled using pattern comparator instructions */
-#define LOCAL_ALIGNMENT(TYPE, ALIGN)                                            \
-    ((TREE_CODE (TYPE) == ARRAY_TYPE && TYPE_MODE (TREE_TYPE (TYPE)) == QImode	\
+#define LOCAL_ALIGNMENT(TYPE, ALIGN)                                                \
+    (((TREE_CODE (TYPE) == ARRAY_TYPE && TYPE_MODE (TREE_TYPE (TYPE)) == QImode)    \
      && (ALIGN) < BITS_PER_WORD) ? BITS_PER_WORD : (ALIGN))
 
 /* Define if operations between registers always perform the operation
@@ -2218,8 +2209,8 @@ typedef struct microblaze_args {
 
 /* Max number of bytes we can move from memory to memory
    in one reasonably fast instruction.  */
-#define MOVE_MAX 4
-#define MAX_MOVE_MAX 8
+#define MOVE_MAX        4
+#define MAX_MOVE_MAX    8
 
 /* Define this macro as a C expression which is nonzero if
    accessing less than a word of memory (i.e. a `char' or a
