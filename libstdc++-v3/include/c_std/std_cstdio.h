@@ -143,7 +143,7 @@ namespace std
   using ::vsprintf;
 }
 
-#if _GLIBCXX_USE_C99
+#if _GLIBCXX_USE_C99 || defined(__UCLIBC__)
 
 #undef snprintf
 #undef vfscanf
