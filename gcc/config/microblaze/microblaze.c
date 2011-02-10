@@ -4169,8 +4169,9 @@ save_restore_insns (int prologue)
       else if (regno != (PIC_OFFSET_TABLE_REGNUM - GP_REG_FIRST))
       {
         insn = emit_move_insn (reg_rtx, mem_rtx);
-        REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_MAYBE_DEAD, const0_rtx, NULL_RTX);
       }
+
+      REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_MAYBE_DEAD, const0_rtx, NULL_RTX);
       
       gp_offset += GET_MODE_SIZE (gpr_mode);
     }
