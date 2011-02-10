@@ -635,7 +635,7 @@ while (0)
 #endif
 
 /* The DWARF 2 CFA column which tracks the return address.  */
-#define DWARF_FRAME_RETURN_COLUMN (FP_REG_LAST + 1)
+#define DWARF_FRAME_RETURN_COLUMN (GP_REG_FIRST + MB_ABI_SUB_RETURN_ADDR_REGNUM)
 
 /* Initial state of return address on entry to func = R15.
    Actually, the RA is at R15+8, but gcc doesn't know how 
