@@ -169,20 +169,6 @@ extern char *microblaze_no_clearbss;
 /* Run-time compilation parameters selecting different hardware subsets.  */
 
 /* Macros used in the machine description to test the flags.  */
-
-/* Bits for real switches */
-#define MASK_MEMCPY             0x00000008      /* Call memcpy instead of inline code           */
-#define MASK_GAS                0x00000010	/* Gas used instead of MICROBLAZE as            */
-#define MASK_EMPTY1             0x00000020	/* Empty 1 */
-#define MASK_STATS              0x00000040	/* print statistics to stderr                   */
-#define MASK_ABICALLS           0x00000400	/* emit .abicalls/.cprestore/.cpload            */
-#define MASK_HALF_PIC           0x00000800	/* Emit OSF-style pic refs to externs           */
-#define MASK_LONG_CALLS         0x00001000	/* Always call through a register               */
-#define MASK_EMBEDDED_PIC       0x00004000	/* Generate embedded PIC code                   */
-#define MASK_EMBEDDED_DATA      0x00008000	/* Reduce RAM usage, not fast code              */
-#define MASK_BIG_ENDIAN         0x00010000	/* Generate big endian code                     */
-#define MASK_SMALL_DIVIDES      0x10000000      /* Use table lookup for divides.                */
-
 #define TARGET_GAS		(target_flags & MASK_GAS)
 #define TARGET_UNIX_ASM		(!TARGET_GAS)
 #define TARGET_MICROBLAZE_AS		TARGET_UNIX_ASM
