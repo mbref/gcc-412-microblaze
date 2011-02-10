@@ -426,6 +426,9 @@ case "${target}" in
   m32c-*-*)
     noconfigdirs="$noconfigdirs target-libstdc++-v3"
     ;;
+  microblaze-*-linux-*)
+    noconfigdirs="$noconfigdirs target-libmudflap"
+    ;;
   alpha*-dec-osf*)
     # ld works, but does not support shared libraries.
     # newlib is not 64 bit ready.  I'm not sure about fileutils.
