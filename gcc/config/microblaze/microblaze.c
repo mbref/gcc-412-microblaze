@@ -4170,7 +4170,8 @@ save_restore_insns (int prologue)
         continue;
 
       reg_rtx = gen_rtx_REG (gpr_mode, regno);  
-      mem_rtx = gen_rtx_MEM (gpr_mode, gen_rtx_PLUS (Pmode, base_reg_rtx, GEN_INT (gp_offset)));    
+      insn = gen_rtx_PLUS (Pmode, base_reg_rtx, GEN_INT (gp_offset));
+      mem_rtx = gen_rtx_MEM (gpr_mode, insn);
       if (interrupt_handler)
         MEM_VOLATILE_P (mem_rtx) = 1;                         /* Do not optimize in flow analysis */    
 
@@ -4182,7 +4183,8 @@ save_restore_insns (int prologue)
       else if (!TARGET_ABICALLS 
                || regno != (PIC_OFFSET_TABLE_REGNUM - GP_REG_FIRST))
       {
-        emit_move_insn (reg_rtx, mem_rtx);
+        insn = emit_move_insn (reg_rtx, mem_rtx);
+        REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_MAYBE_DEAD, const0_rtx, NULL_RTX);
       }
       
       gp_offset += GET_MODE_SIZE (gpr_mode);
