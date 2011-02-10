@@ -169,7 +169,6 @@ extern char *microblaze_no_clearbss;
 /* Run-time compilation parameters selecting different hardware subsets.  */
 
 /* Macros used in the machine description to test the flags.  */
-#define TARGET_GAS		(target_flags & MASK_GAS)
 #define TARGET_UNIX_ASM		(!TARGET_GAS)
 #define TARGET_MICROBLAZE_AS		TARGET_UNIX_ASM
 /*#define TARGET_MICROBLAZE_ASM         (target_flags & MASK_LCC_ASM)  */
@@ -182,30 +181,6 @@ extern char *microblaze_no_clearbss;
 
 /* Optimize for Sdata/Sbss */
 #define TARGET_XLGP_OPT		(target_flags & MASK_XLGPOPT)
-/* print program statistics */
-#define TARGET_STATS		(target_flags & MASK_STATS)
-
-/* .abicalls, etc from Pyramid V.4 */
-#define TARGET_ABICALLS		(target_flags & MASK_ABICALLS)
-
-/* OSF pic references to externs */
-#define TARGET_HALF_PIC		(target_flags & MASK_HALF_PIC)
-
-/* always call through a register */
-#define TARGET_LONG_CALLS	(target_flags & MASK_LONG_CALLS)
-
-/* generate embedded PIC code;
-   requires gas.  */
-#define TARGET_EMBEDDED_PIC	(target_flags & MASK_EMBEDDED_PIC)
-
-/* For embedded systems, optimize for reduced RAM space instead of for
-   fastest code.  */
-#define TARGET_EMBEDDED_DATA	(target_flags & MASK_EMBEDDED_DATA)
-
-/* Generate big endian code.  */
-#define TARGET_BIG_ENDIAN	(target_flags & MASK_BIG_ENDIAN)
-
-#define TARGET_SMALL_DIVIDES    (target_flags & MASK_SMALL_DIVIDES)
 
 /* This is true if we must enable the assembly language file switching
    code.  */
