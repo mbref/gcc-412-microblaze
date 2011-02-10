@@ -1050,11 +1050,6 @@ microblaze_legitimize_address (rtx x, rtx oldx ATTRIBUTE_UNUSED,
     if (code0 == REG && REG_OK_FOR_BASE_P (xplus0)
         && flag_pic == 2)
     {
-      rtx ptr_reg = gen_reg_rtx (Pmode);
-      rtx res_reg = gen_reg_rtx (Pmode);
-//      fprintf(stderr, "legitimize address:\n");
-//      debug_rtx(xplus0);
-//      debug_rtx(xplus1);
       if (reload_in_progress)
         regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 1;
       if (code1 == CONST)
@@ -1069,9 +1064,6 @@ microblaze_legitimize_address (rtx x, rtx oldx ATTRIBUTE_UNUSED,
         result = gen_rtx_PLUS (Pmode, pic_offset_table_rtx, result);
         result = gen_const_mem (Pmode, result);
         result = gen_rtx_PLUS (Pmode, xplus0, result);
-//        fprintf(stderr, "  returning:\n");
-//        debug_rtx(result);
-//        emit_insn (gen_rtx_SET (VOIDmode, res_reg, result));
         return result;
       }
     }
@@ -1468,6 +1460,7 @@ microblaze_move_1word (
             sprintf (ret, "l%si\t%%0,%%1", microblaze_mode_to_mem_modifier (1, GET_MODE (operands[1])));
             break;
 	  case ADDRESS_INVALID:
+	  case ADDRESS_PLT:
 	    fatal_insn("Invalid address", operands[1]);
 	    break;
         }
@@ -1648,6 +1641,7 @@ microblaze_move_1word (
         sprintf (ret, "s%si\t%%z1,%%0", microblaze_mode_to_mem_modifier (0, GET_MODE (operands[0])));
         break;
       case ADDRESS_INVALID:
+      case ADDRESS_PLT:
 	fatal_insn ("invalid address", insn);
 	break;
     }

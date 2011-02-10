@@ -1856,6 +1856,18 @@
         (match_operand:DF 1 "general_operand" ""))]
   ""
   {
+    if (flag_pic == 2) {
+      if (GET_CODE(operands[1]) == MEM 
+          && !microblaze_legitimate_address_p(DFmode, XEXP(operands[1],0), 0))
+      {
+        rtx ptr_reg;
+        rtx result;
+        ptr_reg = force_reg(Pmode, XEXP(operands[1],0));
+        result = gen_rtx_MEM(DFmode, ptr_reg);
+        emit_move_insn(operands[0], result);
+        DONE;
+      }
+    }
     if ((reload_in_progress | reload_completed) == 0
         && !register_operand (operands[0], DFmode)
         && !register_operand (operands[1], DFmode)
