@@ -5180,7 +5180,7 @@ microblaze_encode_section_info (
     else if ((TREE_CODE (DECL)) == STRING_CST){                         
       if ((XEXP (rtl, 0)) != NULL) {                      
         if (TREE_STRING_LENGTH (DECL) <= microblaze_section_threshold) {     
-          VAR_SECTION (XEXP (rtl,0)) = SDATA2_VAR;   
+          VAR_SECTION (XEXP (rtl,0)) = SDATA_VAR;   
         }     
         else {                                                              
           VAR_SECTION (XEXP (rtl,0)) = RODATA_VAR;    
