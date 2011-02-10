@@ -1875,26 +1875,7 @@ typedef struct microblaze_args {
   function_arg( &CUM, MODE, TYPE, NAMED)
 
 /* Tell prologue and epilogue if register REGNO should be saved / restored.  */
-
-/* Added the link register for functions which are not leaf */
-/* Also added the interrupt_handler temp reg save, which is being used for saving the MSR */
-
-/* [02/13/02] : Added interrupt and exception registers to the list of
-   registers being saved on interrupts */
-
-/* [05/28/02] : Modified to make interrupt_handler save all the registers */
-/* Save all volatiles if you have the interrupt handler attribute */
-
-#define MUST_SAVE_REGISTER(regno) \
- (((regs_ever_live[regno] && !call_used_regs[regno])			\
-  || ((regno == HARD_FRAME_POINTER_REGNUM) && frame_pointer_needed)       \
-  || (((regs_ever_live[regno] || ((regno == MB_ABI_MSR_SAVE_REG)) && interrupt_handler)))   \
-  || (regs_ever_live[regno] && save_volatiles)                 \
-  || ((regno == MB_ABI_ASM_TEMP_REGNUM) && ( save_volatiles || interrupt_handler)) \
-  || ((regno == MB_ABI_EXCEPTION_RETURN_ADDR_REGNUM) && ( save_volatiles || interrupt_handler)) \
-  || ((regno == MB_ABI_SUB_RETURN_ADDR_REGNUM) && (!current_function_is_leaf))) \
-  || ((regno >= 3 && regno <= 12) && (interrupt_handler || save_volatiles) && (!current_function_is_leaf))\
-    && regno != 0)
+#define MUST_SAVE_REGISTER(regno) microblaze_must_save_register(regno)
 
 /* Define this macro if the mcount subroutine on your system does not need 
    a counter variable allocated for each function. This is true for almost 

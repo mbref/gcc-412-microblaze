@@ -218,6 +218,7 @@ int microblaze_valid_machine_decl_attribute 	PARAMS ((tree, tree, tree, tree));
 static bool microblaze_handle_option 		PARAMS ((size_t, const char *, int));
 int microblaze_is_interrupt_handler		PARAMS ((void));
 int microblaze_const_double_ok 			PARAMS ((rtx, enum machine_mode));
+static int microblaze_must_save_register 	PARAMS ((int));
 
 /* Global variables for machine-dependent things.  */
 
@@ -5190,4 +5191,41 @@ microblaze_encode_section_info (
       }          
     }									
   }									
+}
+
+
+/* Determine of register must be saved/restored in call. */
+static int
+microblaze_must_save_register (int regno)
+{
+  if (regs_ever_live[regno] && !call_used_regs[regno]) return 1;
+
+  if (frame_pointer_needed && 
+      (regno == HARD_FRAME_POINTER_REGNUM)) return 1;
+
+  if (!current_function_is_leaf)
+  {
+      if (regno == MB_ABI_SUB_RETURN_ADDR_REGNUM) return 1;
+      if ((interrupt_handler || save_volatiles) &&
+          (regno >= 3 && regno <= 12)) return 1;
+  }
+
+  if (interrupt_handler) 
+  {
+    if ((regs_ever_live[regno]) ||
+        (regno == MB_ABI_MSR_SAVE_REG) ||
+        (regno == MB_ABI_ASM_TEMP_REGNUM) ||
+        (regno == MB_ABI_EXCEPTION_RETURN_ADDR_REGNUM))
+       return 1;
+  }
+
+  if (save_volatiles) 
+  {
+    if ((regs_ever_live[regno]) ||
+        (regno == MB_ABI_ASM_TEMP_REGNUM) ||
+        (regno == MB_ABI_EXCEPTION_RETURN_ADDR_REGNUM))
+       return 1;
+  }
+
+  return 0;
 }
