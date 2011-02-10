@@ -77,7 +77,7 @@
 ;; Return if OPERAND is valid as a source operand for a move instruction.
 (define_predicate "move_operand"
   (ior (and (match_code "plus")
-            (match_test "(GET_CODE (XEXP (op, 0)) == REG) ^ (GET_CODE (XEXP (op,1)) == REG)"))
+            (not (match_test "(GET_CODE (XEXP (op, 0)) == REG) ^ (GET_CODE (XEXP (op,1)) == REG)")))
        (match_operand 0 "general_operand")))
 
 ;; Return if OPERAND is valid as a source operand for movdi.
