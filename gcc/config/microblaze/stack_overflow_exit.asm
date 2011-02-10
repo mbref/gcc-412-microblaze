@@ -26,9 +26,18 @@ _stack_overflow_error:
 	.text 
 	.globl	_stack_overflow_exit	
 	.ent	_stack_overflow_exit
+	.type	_stack_overflow_exit,@function
 
 _stack_overflow_exit:
+#ifdef __PIC__
+	mfs	r20,rpc
+	addik	r20,r20,_GLOBAL_OFFSET_TABLE_+8
+	swi	r1,r20,_stack_overflow_error@GOTOFF
+	bri	exit@PLT
+#else
 	swi	r1,r0,_stack_overflow_error
 	bri	exit
+#endif
 
 	.end 	_stack_overflow_exit
+	.size	_stack_overflow_exit,. - _stack_overflow_exit
