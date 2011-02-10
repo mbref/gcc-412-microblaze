@@ -243,10 +243,6 @@ struct rtx_def GTY((chain_next ("RTX_NEXT (&%h)"),
      1 in a MEM if it refers to a scalar.
      1 in a SYMBOL_REF for a weak symbol.  */
   unsigned return_val : 1;
-  /* var_section indicates which section the variable is defined. */
-  unsigned int var_section : 4;
-  /* shift_type - shift by a constant amount or by an amount in a register.  */
-  unsigned int shift_type : 2;
 
   /* The first element of the operands of this rtx.
      The number of operands and their types are controlled

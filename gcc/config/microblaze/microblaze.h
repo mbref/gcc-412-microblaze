@@ -2717,18 +2717,60 @@ do {									\
   fputs (":\n", STREAM);						\
 } while (0)
 
+/* All of these below can be replaced or overridden from elfos.h.  */
+#define COMMON_ASM_OP	"\t.comm\t"
+#define LCOMMON_ASM_OP	"\t.lcomm\t"
 
-/* This says how to define an aligned common symbol */
-#define ASM_OUTPUT_ALIGNED_COMMON(STREAM, NAME, SIZE, ALIGNMENT)   \
-    (microblaze_declare_comm_object (STREAM, NAME, "\n\t.comm\t", ",%u,%u\n", (SIZE), (ALIGNMENT)))
+/* ASM_OUTPUT_ALIGNED_COMMON and ASM_OUTPUT_ALIGNED_LOCAL
 
-/* This says how to define an aligned static common symbol */
-#define ASM_OUTPUT_ALIGNED_LOCAL(STREAM, NAME, SIZE, ALIGNMENT)     \
-    (microblaze_declare_comm_object (STREAM, NAME, "\n\t.lcomm\t", ",%u,%u\n", (SIZE), (ALIGNMENT)))
+   Unfortunately, we still need to set the section explicitly. Somehow,
+   our binutils assign .comm and .lcomm variables to the "current" section 
+   in the assembly file, rather than where they implicitly belong. We need to
+   remove this explicit setting in GCC when binutils can understand sections
+   better. */                                                        
+#undef	ASM_OUTPUT_ALIGNED_COMMON
+#define	ASM_OUTPUT_ALIGNED_COMMON(FILE, NAME, SIZE, ALIGN)		\
+do {									\
+  if (SIZE > 0 && SIZE <= microblaze_section_threshold                  \
+      && TARGET_XLGP_OPT)                                               \
+    {                                                                   \
+      sbss_section ();							\
+    }									\
+  else									\
+    {									\
+      bss_section();                                                    \
+    }                                                                   \
+  fprintf (FILE, "%s", COMMON_ASM_OP);                                  \
+  assemble_name ((FILE), (NAME));					\
+  fprintf ((FILE), ","HOST_WIDE_INT_PRINT_UNSIGNED",%u\n",		\
+           (SIZE), (ALIGN) / BITS_PER_UNIT);                            \
+  ASM_OUTPUT_TYPE_DIRECTIVE (FILE, NAME, "object");			\
+} while (0)
 
-/* This says how to output an aligned BSS symbol */
-#define ASM_OUTPUT_ALIGNED_BSS(STREAM, DECL, NAME, SIZE, ALIGNMENT) \
-    asm_output_aligned_bss (STREAM, DECL, NAME, SIZE, ALIGNMENT)
+#undef ASM_OUTPUT_ALIGNED_LOCAL
+#define	ASM_OUTPUT_ALIGNED_LOCAL(FILE, NAME, SIZE, ALIGN)		\
+do {									\
+  if (SIZE > 0 && SIZE <= microblaze_section_threshold                  \
+      && TARGET_XLGP_OPT)                                               \
+    {                                                                   \
+      sbss_section ();							\
+    }									\
+  else									\
+    {									\
+      bss_section();                                                    \
+    }                                                                   \
+  fprintf (FILE, "%s", LCOMMON_ASM_OP);                                 \
+  assemble_name ((FILE), (NAME));					\
+  fprintf ((FILE), ","HOST_WIDE_INT_PRINT_UNSIGNED",%u\n",		\
+           (SIZE), (ALIGN) / BITS_PER_UNIT);                            \
+  ASM_OUTPUT_TYPE_DIRECTIVE (FILE, NAME, "object");			\
+} while (0)
+
+/* Describe how to emit uninitialized external linkage items.  */
+#define	ASM_OUTPUT_ALIGNED_BSS(FILE, DECL, NAME, SIZE, ALIGN)		\
+do {									\
+  ASM_OUTPUT_ALIGNED_LOCAL (FILE, NAME, SIZE, ALIGN);			\
+} while (0)
 
 /* This says how to output an external.  It would be possible not to
    output anything and let undefined symbol become external. However
@@ -2944,9 +2986,6 @@ do {									\
 #ifndef ASM_COMMENT_START
 #define ASM_COMMENT_START " #"
 #endif
-
-#define VAR_SECTION(RTX) ((RTX)->var_section)
-#define SHIFT_TYPE(RTX) ((RTX)->shift_type)
 
 /* Macros for microblaze-tfile.c to encapsulate stabs in ECOFF, and for
    and microblaze-tdump.c to print them out.
