@@ -3691,3 +3691,12 @@
   [(set_attr "type" "multi")
    (set_attr "length" "12")])
 
+(define_expand "builtin_setjmp_receiver"
+  [(match_operand 0 "" "")]
+  "flag_pic"
+{
+  emit_insn (gen_set_got (pic_offset_table_rtx));
+  emit_insn (gen_rtx_USE (VOIDmode, pic_offset_table_rtx));
+  DONE;
+})
+
