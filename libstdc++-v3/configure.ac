@@ -92,6 +92,9 @@ AC_SUBST(enable_static)
 ## than just ignoring the results.  Faster /and/ more correct, win win.
 GLIBCXX_ENABLE_HOSTED
 
+# Check whether --enable-optimize-memory or --disable-optimize-memory was given.
+ENABLE_OPTIMIZE_MEMORY
+
 # Check for compiler support that doesn't require linking.
 GLIBCXX_ENABLE_SJLJ_EXCEPTIONS
 GLIBCXX_ENABLE_PCH($is_hosted)

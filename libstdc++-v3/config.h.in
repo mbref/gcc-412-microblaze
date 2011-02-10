@@ -701,6 +701,9 @@
 /* Define if code specialized for wchar_t should be used. */
 #undef _GLIBCXX_USE_WCHAR_T
 
+/* Define if reduced memory libstdc++.a is to be built. */
+#undef OPTIMIZE_MEMORY
+
 #if defined (HAVE__ACOSF) && ! defined (HAVE_ACOSF)
 # define HAVE_ACOSF 1
 # define acosf _acosf

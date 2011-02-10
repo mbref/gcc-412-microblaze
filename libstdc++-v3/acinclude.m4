@@ -1919,3 +1919,30 @@ AC_DEFUN([AC_LC_MESSAGES], [
 # Macros from the top-level gcc directory.
 m4_include([../config/tls.m4])
 
+dnl
+dnl Check if the user wants reduced memory libstdc++
+dnl
+dnl --enable-optimize memory will exclude portions of libstdc++ to 
+dnl reduce memory size for embedded applications.
+dnl
+dnl Defines:
+dnl  OPTIMIZE_MEMORY (always defined, either to 1 or 0)
+dnl
+AC_DEFUN([ENABLE_OPTIMIZE_MEMORY], [
+  AC_ARG_ENABLE([optimize-memory],
+    AC_HELP_STRING([--enable-optimize-memory],
+                   [build reduced memory C++ runtime support]),,
+        enable_optimize_memory=yes)
+  if test "$enable_optimize_memory" = no; then
+    AC_MSG_NOTICE([Full memory libraries will be built])
+    optimize_memory=0
+  else
+    AC_MSG_NOTICE([Reduced memory libraries will be built])
+    optimize_memory=1
+  fi
+  GLIBCXX_CONDITIONAL(OPTIMIZE_MEMORY, test $enable_optimize_memory= yes)
+  AC_DEFINE_UNQUOTED(OPTIMIZE_MEMORY, $optimize_memory,
+    [Define to 1 if a reduced memory library is built, or 0 if full sized.])
+])
+
+
