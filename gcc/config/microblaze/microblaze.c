@@ -151,7 +151,7 @@ struct microblaze_address_info
 static void microblaze_encode_section_info	PARAMS ((tree, rtx, int));
 static void microblaze_globalize_label          PARAMS ((FILE*, const char*));
 void  microblaze_declare_comm_object            PARAMS ((FILE *, char *, char *, char *, int size, int align));
-static void microblaze_unique_section           PARAMS ((tree, int));
+//static void microblaze_unique_section           PARAMS ((tree, int));
 static void microblaze_function_prologue        PARAMS ((FILE*, int));
 static void microblaze_function_epilogue        PARAMS ((FILE*, HOST_WIDE_INT));
 static void microblaze_asm_file_start           PARAMS ((void));
@@ -181,13 +181,13 @@ HOST_WIDE_INT microblaze_initial_elimination_offset
                                                 PARAMS ((int, int));
 int microblaze_sched_use_dfa_pipeline_interface PARAMS ((void));
 void microblaze_function_end_prologue           PARAMS ((FILE *));
-static enum internal_test map_test_to_internal_test	
-                                                PARAMS ((enum rtx_code));
+//static enum internal_test map_test_to_internal_test	
+//                                                PARAMS ((enum rtx_code));
 static void block_move_loop			PARAMS ((rtx, rtx, int, int, rtx, rtx));
 static void block_move_call			PARAMS ((rtx, rtx, rtx));
 static void save_restore_insns			PARAMS ((int));
-static rtx add_constant				PARAMS ((struct constant **, rtx, enum machine_mode));
-static void dump_constants			PARAMS ((struct constant *, rtx));
+//static rtx add_constant				PARAMS ((struct constant **, rtx, enum machine_mode));
+//static void dump_constants			PARAMS ((struct constant *, rtx));
 static int microblaze_version_to_int            PARAMS ((const char *));
 static int microblaze_version_compare           PARAMS ((const char *, const char *));
 void microblaze_order_regs_for_local_alloc 	PARAMS ((void));
@@ -217,6 +217,7 @@ static bool microblaze_handle_option 		PARAMS ((size_t, const char *, int));
 int microblaze_is_interrupt_handler		PARAMS ((void));
 int microblaze_const_double_ok 			PARAMS ((rtx, enum machine_mode));
 static int microblaze_must_save_register 	PARAMS ((int));
+void output_ascii 				PARAMS ((FILE *, const char *, int));
 
 /* Global variables for machine-dependent things.  */
 
@@ -340,7 +341,7 @@ struct microblaze_frame_info zero_frame_info;
 
 /* Temporary filename used to buffer .text until end of program
    for -mgpopt.  */
-static char *temp_filename;
+//static char *temp_filename;
 
 /* Pseudo-reg holding the address of the current function when
    generating embedded PIC code.  Created by LEGITIMIZE_ADDRESS, used
@@ -498,7 +499,7 @@ int get_base_reg(rtx);
 static int printed = 0;
 enum load_store {LOAD = 0, STORE=1};
 char *format_load_store(char*, enum load_store,  enum machine_mode ,  rtx,int);
-static int prev_offset;
+// static int prev_offset;
 
 /* True if the current function is an interrupt handler
    (either via #pragma or an attribute specification).  */
@@ -1992,6 +1993,7 @@ pic_address_needs_scratch (rtx x)
 
 /* Make normal rtx_code into something we can index from an array */
 
+#if 0
 static enum internal_test
 map_test_to_internal_test (enum rtx_code test_code)
 {
@@ -2014,6 +2016,7 @@ map_test_to_internal_test (enum rtx_code test_code)
 
   return test;
 }
+#endif
 
 /* Emit the common code for doing conditional branches.
    operand[0] is the label to jump to.
@@ -4721,6 +4724,7 @@ struct constant
 
 /* Add a constant to the list in *PCONSTANTS.  */
 
+#if 0
 static rtx
 add_constant (
   struct constant **pconstants,
@@ -4741,6 +4745,7 @@ add_constant (
   *pconstants = c;
   return c->label;
 }
+#endif
 
 
 /* Exported to toplev.c.
@@ -5039,6 +5044,7 @@ microblaze_select_section (
 
 
 
+#if 0
 static void
 microblaze_unique_section (
   tree decl,
@@ -5094,6 +5100,7 @@ microblaze_unique_section (
   /*  sprintf (string, "%s", prefix);                           */
   /*  DECL_SECTION_NAME(DECL) = build_string(len,string);*/
 }
+#endif
 
 
 
@@ -5231,7 +5238,7 @@ microblaze_must_save_register (int regno)
 void
 output_ascii (FILE *file, const char *string, int len)
 {
-  register int i, c, cur_pos = 17;
+  register int i, cur_pos = 17;
   fprintf (file, "\t.ascii\t\"");
   for (i = 0; i < len; i++)
   {
