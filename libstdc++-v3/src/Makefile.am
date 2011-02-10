@@ -234,6 +234,12 @@ CXXLINK = $(LIBTOOL) --tag CXX --mode=link $(CXX) \
 	  $(OPT_LDFLAGS) $(SECTION_LDFLAGS) $(AM_CXXFLAGS) $(LDFLAGS) -o $@
 
 
+install-exec-local:
+ifeq ($(enable_shared),yes)
+	$(AR) cru libstdc++_pic.a .libs/*.o $(top_builddir)/libsupc++/*.o
+	$(INSTALL_DATA) libstdc++_pic.a $(DESTDIR)$(toolexeclibdir)
+endif
+
 # Added bits to build debug library.
 if GLIBCXX_BUILD_DEBUG
 all-local: build_debug
