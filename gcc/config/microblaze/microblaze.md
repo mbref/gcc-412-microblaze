@@ -2869,7 +2869,7 @@
                       (match_operand:SI 3 "pc_or_label_operand" "")
                       (match_operand:SI 4 "pc_or_label_operand" "")))
   (clobber(reg:SI R_TMP))]
-  ""
+  "(flag_pic != 2 || GET_CODE (operands[2]) == CONST_INT)"
   {
     if (operands[3] != pc_rtx)                                  /* normal jump */
     {                               
@@ -2913,7 +2913,7 @@
                       (match_operand:SI 3 "pc_or_label_operand" "")
                       (match_operand:SI 4 "pc_or_label_operand" "")))
   (clobber(reg:SI R_TMP))]
-  ""
+  "(flag_pic != 2 || GET_CODE (operands[2]) == CONST_INT)"
   {
     if (operands[3] != pc_rtx) {                                /* normal jump */
         switch (GET_CODE (operands[0]))

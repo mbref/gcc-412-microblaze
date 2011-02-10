@@ -2849,6 +2849,10 @@ do {									\
     fprintf (STREAM, "\t%s\t%sL%d-%sLS%d\n",				\
 	     ".gpword",                                                 \
 	     LOCAL_LABEL_PREFIX, VALUE, LOCAL_LABEL_PREFIX, REL);	\
+  else if (flag_pic == 2)                                               \
+    fprintf (STREAM, "\t%s\t%sL%d@GOTOFF\n",                            \
+	     ".gpword",                                                 \
+	     LOCAL_LABEL_PREFIX, VALUE);				\
   else                                                                  \
     fprintf (STREAM, "\t%s\t%sL%d\n",					\
 	     ".gpword",                                                 \
