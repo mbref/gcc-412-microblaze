@@ -3811,9 +3811,9 @@ microblaze_asm_constructor (rtx symbol ATTRIBUTE_UNUSED, int priority)
   }
 
   named_section_flags (section, SECTION_WRITE);
-  fprintf (asm_out_file, "\t%s\t", ".word");     
-  assemble_name (asm_out_file, XSTR (XEXP (symbol, 0), 0));                                       
-  fprintf (asm_out_file, "\n");                                             
+  fputs ("\t.word\t", asm_out_file);
+  output_addr_const (asm_out_file, symbol);
+  fputs ("\n", asm_out_file);
 } 
 
 /* Output an element in the table of global destructors. */
@@ -3834,9 +3834,9 @@ microblaze_asm_destructor (rtx symbol, int priority)
   }
 
   named_section_flags (section, SECTION_WRITE);
-  fprintf (asm_out_file, "\t%s\t", ".word");     
-  assemble_name (asm_out_file, XSTR (XEXP (symbol, 0), 0));                                       
-  fprintf (asm_out_file, "\n");                                             
+  fputs ("\t.word\t", asm_out_file);
+  output_addr_const (asm_out_file, symbol);
+  fputs ("\n", asm_out_file);
 } 
    
 
