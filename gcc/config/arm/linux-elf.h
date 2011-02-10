@@ -63,7 +63,7 @@
    %{shared:-lc} \
    %{!shared:%{profile:-lc_p}%{!profile:-lc}}"
 
-#define LIBGCC_SPEC "%{msoft-float:-lfloat} %{mfloat-abi=soft*:-lfloat} -lgcc"
+#define LIBGCC_SPEC "-lgcc"
 
 #ifdef USE_UCLIBC
 #define LINUX_TARGET_INTERPRETER "/lib/ld-uClibc.so.0"

@@ -693,7 +693,7 @@ arm*-*-linux*)			# ARM GNU/Linux with ELF
 	    default_use_cxa_atexit=yes
 	    ;;
 	*)
-	    tmake_file="$tmake_file arm/t-linux"
+	    tmake_file="$tmake_file arm/t-linux arm/t-arm-elf"
 	    ;;
 	esac
 	tm_file="$tm_file arm/aout.h arm/arm.h"
