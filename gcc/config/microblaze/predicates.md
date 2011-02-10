@@ -24,6 +24,11 @@
   (ior (match_code "const_int")
        (match_operand 0 "register_operand")))
 
+(define_predicate "arith_operand32"
+  (ior (match_operand 0 "register_operand")
+       (and (match_code "const_int,const_double")
+           (match_test "LARGE_INT (op)"))))
+
 ;; FIXME:  Should this include test INTVAL(op)==0
 (define_predicate "const_0_operand"
   (and (match_code "const_int,const_double")

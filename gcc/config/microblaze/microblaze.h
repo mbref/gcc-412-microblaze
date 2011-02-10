@@ -1412,8 +1412,7 @@ contain (16 bit zero-extended integers).
 
 #define SMALL_INT(X) ((unsigned HOST_WIDE_INT) (INTVAL (X) + 0x8000) < 0x10000)
 #define SMALL_INT_UNSIGNED(X) ((unsigned HOST_WIDE_INT) (INTVAL (X)) < 0x10000)
-#define LARGE_INT(X) (((unsigned HOST_WIDE_INT) (INTVAL (X) + 0xffffffff)) \
-	== ((unsigned HOST_WIDE_INT) (INTVAL (X) + 0xffffffff)))
+#define LARGE_INT(X) (INTVAL (X) >= 0x80000000 && INTVAL (X) <= 0xffffffff)
 #define PLT_ADDR_P(X) (GET_CODE (X) == UNSPEC && XINT (X,1) == UNSPEC_PLT)
 /* Test for a valid operand for a call instruction.
    Don't allow the arg pointer register or virtual regs

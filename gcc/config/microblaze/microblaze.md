@@ -495,43 +495,20 @@
 
 ;; reg_DI_dest = reg_DI_src1 + DI_src2
 
-(define_expand "adddi3"
-  [(set (match_operand:DI 0 "register_operand" "")
-	(plus:DI (match_operand: DI 1 "register_operand" "")
-		 (match_operand: DI 2 "arith_operand" "")))]
-  ""
-  ""
-)
+;; Adding 2 DI operands in register or reg/imm
 
-;; Adding 2 DI operands in register
-
-(define_insn "adddi3_internal1"
-  [(set (match_operand:DI 0 "register_operand" "=d")
-	(plus:DI (match_operand:DI 1 "register_operand" "d")
-		 (match_operand:DI 2 "register_operand" "d")))]
+(define_insn "adddi3"
+  [(set (match_operand:DI 0 "register_operand" "=d,d,d")
+       (plus:DI (match_operand:DI 1 "register_operand" "%d,d,d")
+                (match_operand:DI 2 "arith_operand32" "d,P,N")))]
   ""
-  { 
-      return "add\t%L0,%L1,%L2\;addc\t%M0,%M1,%M2";
-  }
-  [(set_attr "type"	"darith")
-  (set_attr "mode"	"DI")
-  (set_attr "length"	"8")])
-
-;; Adding 2 DI operands, one in reg, other imm.
-(define_insn "adddi3_internal2"
-  [(set (match_operand:DI 0 "register_operand" "=d")
-	(plus:DI (match_operand:DI 1 "register_operand" "d")
-		 (match_operand:SI 2 "large_int" "i")))]
-  ""
-  { 
-        if (INTVAL (operands[2]) > 0)
-                return "addi\t%L0,%L1,%2\;addc\t%M0,%M1,r0";
-        else
-                return "addi\t%L0,%L1,%2\;addc\t%M0,%M1,r0\;addi\t%M0,%M0,-1";
-  }
-  [(set_attr "type"	"darith")
-  (set_attr "mode"	"DI")
-  (set_attr "length"	"8")])
+  "@
+  add\t%L0,%L1,%L2\;addc\t%M0,%M1,%M2
+  addi\t%L0,%L1,%2\;addc\t%M0,%M1,r0
+  addi\t%L0,%L1,%2\;addc\t%M0,%M1,r0\;addi\t%M0,%M0,-1"
+  [(set_attr "type"    "darith")
+  (set_attr "mode"     "DI")
+  (set_attr "length"   "8,8,12")])
 
 
 ;;----------------------------------------------------------------
