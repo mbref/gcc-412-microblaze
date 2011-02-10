@@ -2074,16 +2074,14 @@ gen_conditional_branch (rtx operands[], enum rtx_code test_code)
 	gen_rtvec (2,
           gen_rtx_SET (VOIDmode, pc_rtx, 
 	    gen_rtx_IF_THEN_ELSE (VOIDmode, 
-	      (test_code == EQ ? gen_rtx_EQ (mode, cmp0, cmp1) : 
-	        gen_rtx_NE (mode, cmp0, cmp1)), 
+	      gen_rtx_fmt_ee (test_code, mode, cmp0, cmp1),
 	      label1, label2)),
           gen_rtx_CLOBBER (VOIDmode, gen_rtx_REG (SImode, MB_ABI_ASM_TEMP_REGNUM)))));
   } else 
     emit_jump_insn (
       gen_rtx_SET (VOIDmode, pc_rtx, 
         gen_rtx_IF_THEN_ELSE (VOIDmode, 
-	  (test_code == EQ ? gen_rtx_EQ (mode, cmp0, cmp1) : 
-	     gen_rtx_NE (mode, cmp0, cmp1)), 
+	  gen_rtx_fmt_ee (test_code, mode, cmp0, cmp1),
 	  label1, label2)));
 }
 
