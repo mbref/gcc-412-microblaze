@@ -188,9 +188,11 @@ extern char *microblaze_no_clearbss;
    to debug the resulting code.  */
 #define NO_DBX_FUNCTION_END TARGET_FILE_SWITCHING
 
+#if 0
 /* Added by Sid for mb-objdump problem */
 #define DBX_FUNCTION_FIRST 1
 #define DBX_BLOCKS_FUNCTION_RELATIVE 1
+#endif
 
 /* Just to preserve old code */
 #define TARGET_SINGLE_FLOAT             0
@@ -624,11 +626,13 @@ while (0)
 /* /\* Unknown tags are also allowed.  *\/ */
 /* #define SDB_ALLOW_UNKNOWN_REFERENCES */
 
+#if 0
 #define DBX_DEBUGGING_INFO		/* generate stabs (OSF/rose) */
 
 /* On Sun 4, this limit is 2048.  We use 1500 to be safe,
    since the length can run past this up to a continuation point.  */
 #define DBX_CONTIN_LENGTH 1500
+#endif
 
 /* How to renumber registers for dbx and gdb. */
 #define DBX_REGISTER_NUMBER(REGNO) microblaze_dbx_regno[ (REGNO) ]
